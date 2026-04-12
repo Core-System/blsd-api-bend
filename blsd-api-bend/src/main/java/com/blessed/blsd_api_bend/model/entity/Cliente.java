@@ -1,0 +1,35 @@
+package com.blessed.blsd_api_bend.model.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Cliente extends Usuario{
+
+    @Column(name = "data_nasc")
+    private LocalDate dataNasc;
+
+    private String telefone;
+
+    @ManyToOne
+    @JoinColumn(name = "acesso_id")
+    private Acesso acesso;
+
+    @OneToOne
+    @JoinColumn(name = "endereco_id")
+    private Endereco endereco;
+
+    @ManyToOne
+    @JoinColumn(name = "consulta_id")
+    private List<Consulta> consulta;
+
+
+}
