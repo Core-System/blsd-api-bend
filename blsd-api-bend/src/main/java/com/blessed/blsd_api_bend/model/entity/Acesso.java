@@ -17,7 +17,7 @@ public class Acesso {
     private Long id;
 
     @Column(name = "nome")
-    private TiposAcessos acesso;
+    private TiposAcessos nome;
 
     private String descricao;
 

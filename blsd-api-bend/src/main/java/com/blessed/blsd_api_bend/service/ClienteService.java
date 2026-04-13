@@ -3,6 +3,7 @@ package com.blessed.blsd_api_bend.service;
 import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
+import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,10 @@ public class ClienteService {
     public Cliente listarPorId(Long id){
         return clienteRepository.findById(id).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
     }
+    public Cliente buscarPorEmail(String email){
+        return clienteRepository.findByEmail(email).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
 
+    }
 
 
     public Cliente cadastrarCliente (Cliente cliente){
