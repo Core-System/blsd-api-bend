@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.dto.cliente;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -17,6 +18,7 @@ public class ClienteRequestDTO {
     @NotBlank
     private String nome;
     @NotBlank
+    @Email
     private String email;
     @NotBlank
     private String senha;
@@ -27,12 +29,7 @@ public class ClienteRequestDTO {
     private LocalDate dataNasc;
     @NotBlank
     private String telefone;
-    @NotNull
-    private Long acessoId;
-    @NotNull
-    private Long enderecoId;
 
-    private Long consultaId;
 
 
 
