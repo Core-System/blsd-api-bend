@@ -1,8 +1,10 @@
 package com.blessed.blsd_api_bend.dto.usuario;
 
+import com.blessed.blsd_api_bend.model.entity.Usuario;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -16,16 +18,19 @@ public class UsuarioDetalheDTO implements UserDetails {
 
     private final String senha;
 
+    private final String role;
 
-    public UsuarioDetalheDTO(String nome, String email, String senha) {
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
+
+    public UsuarioDetalheDTO(Usuario usuario) {
+        this.nome = usuario.getNome();
+        this.email = usuario.getEmail();
+        this.senha = usuario.getSenha();
+        this.role = usuario.getAcesso().getNome().name();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     @Override

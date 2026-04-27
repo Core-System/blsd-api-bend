@@ -10,57 +10,60 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ClienteService {
+public class ClienteService implements UsuarioService<Cliente> {
 
     private final ClienteRepository clienteRepository;
-
 
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
 
-    public List<Cliente> listarClientes(){
+    @Override
+    public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
     }
 
-    public Cliente listarPorId(Long id){
-        return clienteRepository.findById(id).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
-    }
-    public Cliente buscarPorEmail(String email){
-        return clienteRepository.findByEmail(email).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
-
+    @Override
+    public Cliente listarPorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
     }
 
+    @Override
+    public Cliente buscarPorEmail(String email) {
+        return clienteRepository.findByEmail(email)
+                .orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
+    }
 
-    public Cliente cadastrarCliente (Cliente cliente){
-        if(clienteRepository.existsByEmail(cliente.getEmail())){
+    @Override
+    public Cliente cadastrar(Cliente cliente) {
+        if (clienteRepository.existsByEmail(cliente.getEmail())) {
             throw new ClienteAlreadyExistsException("Cliente já existente");
         }
-
         return clienteRepository.save(cliente);
     }
 
-    public Cliente atualizarCliente (Long id, Cliente cliente){
-        return clienteRepository.findById(id).map(clienteEncontrado -> {
-            clienteEncontrado.setNome(cliente.getNome());
-            clienteEncontrado.setEmail(cliente.getEmail());
-            clienteEncontrado.setSenha(cliente.getSenha());
-            clienteEncontrado.setUrlFoto(cliente.getUrlFoto());
-            clienteEncontrado.setDataCriacao(cliente.getDataCriacao());
-            clienteEncontrado.setDataNasc(cliente.getDataNasc());
-            clienteEncontrado.setTelefone(cliente.getTelefone());
-            clienteEncontrado.setAcesso(cliente.getAcesso());
-            clienteEncontrado.setEndereco(cliente.getEndereco());
-            clienteEncontrado.setConsulta(cliente.getConsulta());
-            return clienteRepository.save(clienteEncontrado);
-        }).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
+    @Override
+    public Cliente atualizar(Long id, Cliente cliente) {
+        return clienteRepository.findById(id).map(c -> {
+            c.setNome(cliente.getNome());
+            c.setEmail(cliente.getEmail());
+            c.setSenha(cliente.getSenha());
+            c.setUrlFoto(cliente.getUrlFoto());
+            c.setDataCriacao(cliente.getDataCriacao());
+            c.setDataNasc(cliente.getDataNasc());
+            c.setTelefone(cliente.getTelefone());
+            c.setAcesso(cliente.getAcesso());
+            c.setEndereco(cliente.getEndereco());
+            c.setConsulta(cliente.getConsulta());
+            return clienteRepository.save(c);
+        }).orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
     }
 
-    public void deletarCliente(Long id){
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
+    @Override
+    public void deletar(Long id) {
+        Cliente cliente = listarPorId(id);
         clienteRepository.delete(cliente);
     }
-
-
-
 }
+

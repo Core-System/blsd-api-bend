@@ -35,16 +35,37 @@ public class UsuarioMapper {
             return funcionario;
         }
 
-        public static UsuarioTokenDTO of(Usuario usuario, String token){
+        public static Usuario of(LoginRequestDTO usuarioDTO){
+            Usuario usuario = new Usuario();
+
+            usuario.setEmail(usuarioDTO.getEmail());
+            usuario.setSenha(usuarioDTO.getSenha());
+            return usuario;
+        }
+
+        public static UsuarioTokenDTO of( Usuario usuario, String token){
             UsuarioTokenDTO usuarioTokenDTO = new UsuarioTokenDTO();
 
             usuarioTokenDTO.setId(usuario.getId());
-            usuarioTokenDTO.setEmail(usuario.getEmail());
             usuarioTokenDTO.setNome(usuario.getNome());
+            usuarioTokenDTO.setEmail(usuarioTokenDTO.getEmail());
+            usuarioTokenDTO.setAcesso(usuario.getAcesso());
             usuarioTokenDTO.setToken(token);
 
             return usuarioTokenDTO;
         }
+
+
+        public static UsuarioListarDTO of(Usuario usuario){
+            UsuarioListarDTO usuarioListarDTO = new UsuarioListarDTO();
+
+            usuarioListarDTO.setId(usuario.getId());
+            usuarioListarDTO.setNome(usuario.getNome());
+            usuarioListarDTO.setEmail(usuario.getEmail());
+
+            return usuarioListarDTO;
+        }
+
 
 
 

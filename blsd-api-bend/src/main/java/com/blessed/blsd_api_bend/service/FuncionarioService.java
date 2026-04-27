@@ -1,70 +1,67 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
-import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
-import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
-import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class FuncionarioService {
+public class FuncionarioService implements UsuarioService<Funcionario> {
 
     private final FuncionarioRepository funcionarioRepository;
-
 
     public FuncionarioService(FuncionarioRepository funcionarioRepository) {
         this.funcionarioRepository = funcionarioRepository;
     }
 
-    public List<Funcionario> listarFuncionarios(){
+    @Override
+    public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
-    public Funcionario listarPorId(Long id){
-        return funcionarioRepository.findById(id).orElseThrow(()-> new FuncionarioNotFoundException("Funcionario não encontrado"));
+    @Override
+    public Funcionario listarPorId(Long id) {
+        return funcionarioRepository.findById(id)
+                .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-    public Funcionario buscarPorEmail(String email){
-        return funcionarioRepository.findByEmail(email).orElseThrow(()-> new FuncionarioNotFoundException("Funcionario não encontrado"));
-
+    @Override
+    public Funcionario buscarPorEmail(String email) {
+        return funcionarioRepository.findByEmail(email)
+                .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-
-
-    public Funcionario cadastrarFuncionario (Funcionario funcionario){
-        if(funcionarioRepository.existsByEmail(funcionario.getEmail()) && funcionarioRepository.existsByCpf(funcionario.getCpf())){
+    @Override
+    public Funcionario cadastrar(Funcionario funcionario) {
+        if (funcionarioRepository.existsByEmail(funcionario.getEmail())
+                && funcionarioRepository.existsByCpf(funcionario.getCpf())) {
             throw new FuncionarioAlreadyExistsException("Funcionario já existente");
         }
-
         return funcionarioRepository.save(funcionario);
     }
 
-    public Funcionario atualizarFuncionario (Long id, Funcionario funcionario){
-        return funcionarioRepository.findById(id).map(funcionarioEncontrado -> {
-            funcionarioEncontrado.setNome(funcionario.getNome());
-            funcionarioEncontrado.setEmail(funcionario.getEmail());
-            funcionarioEncontrado.setSenha(funcionario.getSenha());
-            funcionarioEncontrado.setUrlFoto(funcionario.getUrlFoto());
-            funcionarioEncontrado.setCpf(funcionario.getCpf());
-            funcionarioEncontrado.setEmpresa(funcionario.getEmpresa());
-            funcionarioEncontrado.setAcesso(funcionario.getAcesso());
-            funcionarioEncontrado.setConsulta(funcionario.getConsulta());
-            return funcionarioRepository.save(funcionarioEncontrado);
-        }).orElseThrow(()-> new FuncionarioNotFoundException("Funcionario não encontrado"));
+    @Override
+    public Funcionario atualizar(Long id, Funcionario funcionario) {
+        return funcionarioRepository.findById(id).map(f -> {
+            f.setNome(funcionario.getNome());
+            f.setEmail(funcionario.getEmail());
+            f.setSenha(funcionario.getSenha());
+            f.setUrlFoto(funcionario.getUrlFoto());
+            f.setCpf(funcionario.getCpf());
+            f.setEmpresa(funcionario.getEmpresa());
+            f.setAcesso(funcionario.getAcesso());
+            f.setConsulta(funcionario.getConsulta());
+            return funcionarioRepository.save(f);
+        }).orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-    public void deletarFuncionario(Long id){
-        Funcionario funcionario = funcionarioRepository.findById(id).orElseThrow(() -> new FuncionarioNotFoundException("Cliente não encontrado"));
+    @Override
+    public void deletar(Long id) {
+        Funcionario funcionario = listarPorId(id);
         funcionarioRepository.delete(funcionario);
     }
-
-
-
-
 }

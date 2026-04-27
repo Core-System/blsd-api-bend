@@ -27,8 +27,12 @@ public class Usuario {
     private String senha;
     @Column(name = "url_foto")
     private String urlFoto;
-    @Column(name = "data_criacao")
+    @Column(name = "data_criacao")  
     private LocalDateTime dataCriacao;
+
+    @ManyToOne
+    @JoinColumn(name = "acesso_id")
+    private Acesso acesso;
 
 
 }

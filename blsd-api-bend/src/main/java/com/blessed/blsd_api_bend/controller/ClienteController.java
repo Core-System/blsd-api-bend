@@ -24,7 +24,7 @@ public class ClienteController {
 
     @GetMapping
     public ResponseEntity<List<Cliente>> getCliente() {
-        List<Cliente> clientes = clienteService.listarClientes();
+        List<Cliente> clientes = clienteService.listarTodos();
         return ResponseEntity.ok(clientes);
     }
 
@@ -47,7 +47,7 @@ public class ClienteController {
         clienteCriado.setDataCriacao(LocalDateTime.now());
 
 
-        return ResponseEntity.status(201).body(clienteService.cadastrarCliente(clienteCriado));
+        return ResponseEntity.status(201).body(clienteService.cadastrar(clienteCriado));
     }
 
     @PutMapping("/{id}")
@@ -64,7 +64,7 @@ public class ClienteController {
         clienteExistente.setTelefone(clienteDTO.getTelefone());
 
 
-        Cliente atualizado = clienteService.atualizarCliente(id,clienteExistente);
+        Cliente atualizado = clienteService.atualizar(id,clienteExistente);
 
         return ResponseEntity.ok(atualizado)    ;
     }
@@ -72,7 +72,7 @@ public class ClienteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarCliente(@PathVariable Long id) {
-        clienteService.deletarCliente(id);
+        clienteService.deletar(id);
         return ResponseEntity.noContent().build();
     }
 
