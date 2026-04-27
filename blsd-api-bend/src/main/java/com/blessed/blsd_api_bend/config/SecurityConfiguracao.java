@@ -26,105 +26,67 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-
 @Configuration
-    @EnableWebSecurity
-    @EnableMethodSecurity
-    public class SecurityConfiguracao {
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfiguracao {
 
-        @Autowired
-        private AutenticacaoService autenticacaoService;
+    private final AutenticacaoService autenticacaoService;
+    private final AutenticacaoEntryPoint autenticacaoJwtEntryPoint;
+    private final AutenticacaoFilter autenticacaoFilter;
 
-        @Autowired
-        private AutenticacaoEntryPoint autenticacaoJwtEntryPoint;
-
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            http
-                    .headers(headers -> headers
-                            .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                    .cors(Customizer.withDefaults())
-                    .csrf(CsrfConfigurer<HttpSecurity>::disable)
-                    .authorizeHttpRequests(authorize -> authorize
-                            .requestMatchers(
-                                    "/swagger-ui/**",
-                                    "/swagger-ui.html",
-                                    "/swagger-resources/**",
-                                    "/configuration/ui",
-                                    "/configuration/security",
-                                    "/api/public/**",
-                                    "/api/public/authenticate",
-                                    "/webjars/**",
-                                    "/v3/api-docs/**",
-                                    "/actuator/*",
-                                    "/usuarios/login/**",
-                                    "/h2-console/**",
-                                    "/error/**"
-                            ).permitAll()
-                            .anyRequest().authenticated()
-                    )
-                    .exceptionHandling(handling -> handling
-                            .authenticationEntryPoint(autenticacaoJwtEntryPoint))
-                    .sessionManagement(management -> management
-                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-            http.addFilterBefore(jwtAuthenticationFilterBean(), UsernamePasswordAuthenticationFilter.class);
-
-            return http.build();
-        }
-
-        @Bean
-        public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-            AuthenticationManagerBuilder authenticationManagerBuilder =
-                    http.getSharedObject(AuthenticationManagerBuilder.class);
-            authenticationManagerBuilder.authenticationProvider(
-                    new AutenticacaoProvider(autenticacaoService, passwordEncoder())
-            );
-            return authenticationManagerBuilder.build();
-        }
-
-        @Bean
-        public AutenticacaoEntryPoint jwtAuthenticationEntryPointBean() {
-            return new AutenticacaoEntryPoint();
-        }
-
-        @Bean
-        public AutenticacaoFilter jwtAuthenticationFilterBean() {
-            return new AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean());
-        }
-
-        @Bean
-        public GerenciadorTokenJwt jwtAuthenticationUtilBean() {
-            return new GerenciadorTokenJwt();
-        }
-
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-            CorsConfiguration configuracao = new CorsConfiguration();
-            configuracao.applyPermitDefaultValues();
-            configuracao.setAllowedMethods(
-                    Arrays.asList(
-                            HttpMethod.GET.name(),
-                            HttpMethod.POST.name(),
-                            HttpMethod.PUT.name(),
-                            HttpMethod.PATCH.name(),
-                            HttpMethod.DELETE.name(),
-                            HttpMethod.OPTIONS.name(),
-                            HttpMethod.HEAD.name(),
-                            HttpMethod.TRACE.name()
-                    )
-            );
-
-            configuracao.setExposedHeaders(List.of(HttpHeaders.CONTENT_DISPOSITION));
-
-            UrlBasedCorsConfigurationSource origem = new UrlBasedCorsConfigurationSource();
-            origem.registerCorsConfiguration("/**", configuracao);
-
-            return origem;
-        }
+    public SecurityConfiguracao(AutenticacaoService autenticacaoService,
+                                AutenticacaoEntryPoint autenticacaoJwtEntryPoint,
+                                AutenticacaoFilter autenticacaoFilter) {
+        this.autenticacaoService = autenticacaoService;
+        this.autenticacaoJwtEntryPoint = autenticacaoJwtEntryPoint;
+        this.autenticacaoFilter = autenticacaoFilter;
     }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .cors(Customizer.withDefaults())
+                .csrf(CsrfConfigurer<HttpSecurity>::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/api/public/**",
+                                "/api/public/authenticate",
+                                "/webjars/**",
+                                "/v3/api-docs/**",
+                                "/actuator/*",
+                                "/usuarios/login/**",
+                                "/h2-console/**",
+                                "/error/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(handling -> handling.authenticationEntryPoint(autenticacaoJwtEntryPoint))
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(
+                new AutenticacaoProvider(autenticacaoService, passwordEncoder())
+        );
+        return authenticationManagerBuilder.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
