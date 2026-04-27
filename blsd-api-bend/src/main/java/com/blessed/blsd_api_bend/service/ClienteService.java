@@ -3,14 +3,13 @@ package com.blessed.blsd_api_bend.service;
 import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
-import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ClienteService implements UsuarioService<Cliente> {
+public class ClienteService implements IUsuarioService<Cliente> {
 
     private final ClienteRepository clienteRepository;
 

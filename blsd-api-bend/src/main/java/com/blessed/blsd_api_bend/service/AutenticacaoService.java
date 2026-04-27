@@ -26,6 +26,6 @@ public class AutenticacaoService implements UserDetailsService {
                 .orElseGet(() -> funcionarioRepository.findByEmail(username)
                         .map(UsuarioDetalheDTO::new )
                         .orElseThrow(() -> new UsernameNotFoundException(
-                                String.format("usuario: %s nao encontrado", username))));
+                                String.format("usuario: %s nao encontrado", username))) );
     }
 }

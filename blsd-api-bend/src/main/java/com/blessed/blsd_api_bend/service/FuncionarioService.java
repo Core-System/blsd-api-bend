@@ -4,13 +4,12 @@ import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsE
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class FuncionarioService implements UsuarioService<Funcionario> {
+public class FuncionarioService implements IUsuarioService<Funcionario> {
 
     private final FuncionarioRepository funcionarioRepository;
 
