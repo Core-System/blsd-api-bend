@@ -76,7 +76,14 @@ public class ClienteController {
         return ResponseEntity.noContent().build();
     }
 
-
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody ClienteRequestDTO cliente) {
+        Cliente existente = clienteService.buscarPorEmail(cliente.getEmail());
+        if (existente != null && existente.getSenha().equals(cliente.getSenha())) {
+            return ResponseEntity.ok("Login realizado com sucesso");
+        }
+        return ResponseEntity.status(401).body("Credenciais inválidas");
+    }
 
 
 }

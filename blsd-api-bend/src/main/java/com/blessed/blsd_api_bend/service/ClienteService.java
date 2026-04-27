@@ -13,7 +13,6 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
 
-
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
@@ -26,7 +25,9 @@ public class ClienteService {
         return clienteRepository.findById(id).orElseThrow(()-> new ClienteNotFoundException("Cliente não encontrado"));
     }
 
-
+    public Cliente buscarPorEmail(String email) {
+        return clienteRepository.findByEmail(email).orElse(null);
+    }
 
     public Cliente cadastrarCliente (Cliente cliente){
         if(clienteRepository.existsByEmail(cliente.getEmail())){
