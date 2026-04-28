@@ -19,10 +19,6 @@ public class Cliente extends Usuario{
 
     private String telefone;
 
-    @ManyToOne
-    @JoinColumn(name = "acesso_id")
-    private Acesso acesso;
-
     @OneToOne
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;

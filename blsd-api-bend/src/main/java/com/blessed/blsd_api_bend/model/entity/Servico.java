@@ -37,7 +37,7 @@ public class Servico {
     )
     private List<Produto> produtos = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "servico")
+    @ManyToMany(mappedBy = "servicos")
     @JsonIgnore
     private List<Consulta> consultas = new ArrayList<>();
 

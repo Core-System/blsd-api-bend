@@ -24,7 +24,7 @@ public class Produto {
     private BigDecimal preco;
     private Integer quantidade;
 
-    @ManyToMany(mappedBy = "produto")
+    @ManyToMany(mappedBy = "produtos")
     @JsonIgnore
     private List<Servico> servico = new ArrayList<>();
 

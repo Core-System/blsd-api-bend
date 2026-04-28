@@ -20,10 +20,6 @@ public class Funcionario extends Usuario {
 
     private String cpf;
 
-    @ManyToOne
-    @JoinColumn(name = "acesso_id")
-    private Acesso acesso;
-
     @OneToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
