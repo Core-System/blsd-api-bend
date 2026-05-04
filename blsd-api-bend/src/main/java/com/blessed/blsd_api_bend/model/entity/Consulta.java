@@ -46,4 +46,8 @@ public class Consulta {
     )
     private List<Servico> servicos;
 
+    @ManyToOne
+    @JoinColumn(name = "fk_cliente")
+    private Cliente cliente;
+
 }

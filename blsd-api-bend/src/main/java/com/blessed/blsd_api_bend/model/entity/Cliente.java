@@ -23,8 +23,7 @@ public class Cliente extends Usuario{
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-    @ManyToOne
-    @JoinColumn(name = "consulta_id")
+    @OneToMany(mappedBy = "cliente")
     private List<Consulta> consulta;
 
 
