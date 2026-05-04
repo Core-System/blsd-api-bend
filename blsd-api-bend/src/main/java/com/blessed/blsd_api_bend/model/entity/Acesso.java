@@ -17,6 +17,7 @@ public class Acesso {
     private Long id;
 
     @Column(name = "nome")
+    @Enumerated(EnumType.STRING)
     private TiposAcessos nome;
 
     private String descricao;

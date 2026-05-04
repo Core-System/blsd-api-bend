@@ -4,6 +4,7 @@ import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.List;
 public class ClienteService implements IUsuarioService<Cliente> {
 
     private final ClienteRepository clienteRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ClienteService(ClienteRepository clienteRepository) {
+    public ClienteService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder) {
         this.clienteRepository = clienteRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -39,6 +42,7 @@ public class ClienteService implements IUsuarioService<Cliente> {
         if (clienteRepository.existsByEmail(cliente.getEmail())) {
             throw new ClienteAlreadyExistsException("Cliente já existente");
         }
+        cliente.setSenha(passwordEncoder.encode(cliente.getSenha()));
         return clienteRepository.save(cliente);
     }
 
