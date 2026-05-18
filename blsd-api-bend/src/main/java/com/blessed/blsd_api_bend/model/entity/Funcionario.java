@@ -28,5 +28,27 @@ public class Funcionario extends Usuario {
     @JoinColumn(name = "consulta_id")
     private List<Consulta> consulta;
 
+    public String getCpf() {
+        return cpf;
+    }
 
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
+    }
+
+    public List<Consulta> getConsulta() {
+        return consulta;
+    }
+
+    public void setConsulta(List<Consulta> consulta) {
+        this.consulta = consulta;
+    }
 }

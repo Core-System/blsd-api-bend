@@ -62,4 +62,20 @@ public class UsuarioDetalheDTO implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public String getRole() {
+        return role;
+    }
 }

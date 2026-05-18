@@ -22,5 +22,27 @@ public class Acesso {
 
     private String descricao;
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public TiposAcessos getNome() {
+        return nome;
+    }
+
+    public void setNome(TiposAcessos nome) {
+        this.nome = nome;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
 }

@@ -16,4 +16,19 @@ public class FuncionarioRequestDTO extends UsuarioRequestDTO {
     private Empresa empresa;
 
 
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
+    }
 }

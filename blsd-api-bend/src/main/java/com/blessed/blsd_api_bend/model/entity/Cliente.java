@@ -26,5 +26,35 @@ public class Cliente extends Usuario{
     @OneToMany(mappedBy = "cliente")
     private List<Consulta> consulta;
 
+    public LocalDate getDataNasc() {
+        return dataNasc;
+    }
 
+    public void setDataNasc(LocalDate dataNasc) {
+        this.dataNasc = dataNasc;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public Endereco getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
+    }
+
+    public List<Consulta> getConsulta() {
+        return consulta;
+    }
+
+    public void setConsulta(List<Consulta> consulta) {
+        this.consulta = consulta;
+    }
 }

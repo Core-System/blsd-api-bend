@@ -24,6 +24,19 @@ public class ClienteRequestDTO extends UsuarioRequestDTO {
     private String telefone;
 
 
+    public void setDataNasc(LocalDate dataNasc) {
+        this.dataNasc = dataNasc;
+    }
 
+    public String getTelefone() {
+        return telefone;
+    }
 
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public LocalDate getDataNasc() {
+        return dataNasc;
+    }
 }

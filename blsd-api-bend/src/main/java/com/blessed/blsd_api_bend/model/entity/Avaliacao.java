@@ -21,4 +21,27 @@ public class Avaliacao {
 
     private String descricacao;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getNota() {
+        return nota;
+    }
+
+    public void setNota(Integer nota) {
+        this.nota = nota;
+    }
+
+    public String getDescricacao() {
+        return descricacao;
+    }
+
+    public void setDescricacao(String descricacao) {
+        this.descricacao = descricacao;
+    }
 }

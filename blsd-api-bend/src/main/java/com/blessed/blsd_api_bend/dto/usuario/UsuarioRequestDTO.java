@@ -26,4 +26,44 @@ public class UsuarioRequestDTO {
 
     @NotNull
     private Acesso acesso;
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+    public Acesso getAcesso() {
+        return acesso;
+    }
+
+    public void setAcesso(Acesso acesso) {
+        this.acesso = acesso;
+    }
 }
