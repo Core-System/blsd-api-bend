@@ -23,6 +23,7 @@ public class Acesso {
             implementation = TiposAcessos.class)
     @Enumerated(EnumType.STRING)
     @Column(name = "nome")
+    @Enumerated(EnumType.STRING)
     private TiposAcessos nome;
 
     @Schema(description = "Descrição detalhada do acesso",

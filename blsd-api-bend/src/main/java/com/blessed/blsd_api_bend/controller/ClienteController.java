@@ -45,7 +45,7 @@ public class ClienteController {
         clienteCriado.setUrlFoto(cliente.getUrlFoto());
         clienteCriado.setTelefone(cliente.getTelefone());
         clienteCriado.setDataCriacao(LocalDateTime.now());
-
+        clienteCriado.setAcesso(cliente.getAcesso());
 
         return ResponseEntity.status(201).body(clienteService.cadastrar(clienteCriado));
     }
