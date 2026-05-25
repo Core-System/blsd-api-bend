@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.model.entity;
 
 import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.model.enums.Pagamentos;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,14 +30,27 @@ public class Consulta {
     @Column(name = "data_hora_fim")
     private LocalDateTime dataHoraFim;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_pagamento")
     private Pagamentos tipoPagamento;
 
     @Column(name = "data_pagamento")
     private LocalDate dataPagamento;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "local_consulta")
     private LocalConsulta localConsulta;
+
+    @Enumerated(EnumType.STRING)
+    private StatusConsulta status = StatusConsulta.PENDENTE;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_cliente")
+    private Cliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_funcionario")
+    private Funcionario funcionario;
 
     @ManyToMany
     @JoinTable(
@@ -44,6 +58,15 @@ public class Consulta {
             joinColumns = @JoinColumn(name = "consulta_id"),
             inverseJoinColumns = @JoinColumn(name = "servico_id")
     )
+    @JsonIgnore
     private List<Servico> servicos;
+
+    @OneToOne
+    @JoinColumn(name = "avaliacao_id")
+    private Avaliacao avaliacao;
+
+    public enum StatusConsulta {
+        PENDENTE, CONCLUIDA, CANCELADA
+    }
 
 }

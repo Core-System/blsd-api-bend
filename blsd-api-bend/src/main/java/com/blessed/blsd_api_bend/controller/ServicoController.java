@@ -20,6 +20,8 @@ public class ServicoController {
         this.servicoService = servicoService;
     }
 
+
+
     @GetMapping
     public ResponseEntity<List<Servico>> listarServicos() {
         List<Servico> servicos = servicoService.listarTodos();
@@ -47,7 +49,7 @@ public class ServicoController {
         return ResponseEntity.status(201).body(servicoService.cadastrar(servicoCriado));
     }
 
-    @PutMapping("/{id}")
+/*    @PutMapping("/{id}")
     public ResponseEntity<Servico> atualizarServico(@PathVariable Long id,
                                                     @Valid @RequestBody ServicoRequestDTO servicoDTO) {
         Servico servicoExistente = servicoService.listarPorId(id);
@@ -63,7 +65,7 @@ public class ServicoController {
         Servico atualizado = servicoService.atualizar(id, servicoExistente);
         return ResponseEntity.ok(atualizado);
     }
-
+*/
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarServico(@PathVariable Long id) {
         servicoService.deletar(id);
