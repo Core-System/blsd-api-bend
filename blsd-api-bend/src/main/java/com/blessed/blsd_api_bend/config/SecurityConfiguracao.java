@@ -1,6 +1,6 @@
 package com.blessed.blsd_api_bend.config;
 
-import com.blessed.blsd_api_bend.service.AutenticacaoService;
+import com.blessed.blsd_api_bend.service    .AutenticacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

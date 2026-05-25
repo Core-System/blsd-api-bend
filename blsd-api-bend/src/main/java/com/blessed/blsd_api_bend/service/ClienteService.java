@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ClienteService implements IUsuarioService<Cliente> {
+public class ClienteService implements ICrudService<Cliente> {
 
     private final ClienteRepository clienteRepository;
 
@@ -28,7 +28,6 @@ public class ClienteService implements IUsuarioService<Cliente> {
                 .orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
     }
 
-    @Override
     public Cliente buscarPorEmail(String email) {
         return clienteRepository.findByEmail(email)
                 .orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
