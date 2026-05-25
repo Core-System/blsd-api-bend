@@ -2,11 +2,10 @@ package com.blessed.blsd_api_bend.service;
 
 import java.util.List;
 
-public interface IUsuarioService<T> {
+public interface ICrudService<T> {
     List<T> listarTodos();
     T listarPorId(Long id);
-    T buscarPorEmail(String email);
-    T cadastrar(T usuario);
-    T atualizar(Long id, T usuario);
+    T cadastrar(T req);
+    T atualizar(Long id, T req);
     void deletar(Long id);
 }

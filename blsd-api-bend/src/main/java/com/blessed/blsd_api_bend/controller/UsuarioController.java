@@ -1,15 +1,11 @@
 package com.blessed.blsd_api_bend.controller;
 
 import com.blessed.blsd_api_bend.dto.usuario.LoginRequestDTO;
-import com.blessed.blsd_api_bend.dto.usuario.UsuarioListarDTO;
-import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioTokenDTO;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
-import com.blessed.blsd_api_bend.model.entity.Usuario;
 import com.blessed.blsd_api_bend.service.ClienteService;
 import com.blessed.blsd_api_bend.service.FuncionarioService;
-import com.blessed.blsd_api_bend.service.IUsuarioService;
 import com.blessed.blsd_api_bend.service.UsuarioService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;

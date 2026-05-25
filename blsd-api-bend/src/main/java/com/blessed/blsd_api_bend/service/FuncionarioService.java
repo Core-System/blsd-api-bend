@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class FuncionarioService implements IUsuarioService<Funcionario> {
+public class FuncionarioService implements ICrudService<Funcionario> {
 
     private final FuncionarioRepository funcionarioRepository;
 
@@ -28,7 +28,6 @@ public class FuncionarioService implements IUsuarioService<Funcionario> {
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-    @Override
     public Funcionario buscarPorEmail(String email) {
         return funcionarioRepository.findByEmail(email)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
