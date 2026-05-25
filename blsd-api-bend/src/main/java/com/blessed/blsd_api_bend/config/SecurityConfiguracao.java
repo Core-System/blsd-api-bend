@@ -62,8 +62,14 @@ public class SecurityConfiguracao {
                                 "/v3/api-docs/**",
                                 "/actuator/*",
                                 "/usuarios/login/**",
+                                "/cliente",
+                                "/cliente/**",
                                 "/h2-console/**",
-                                "/error/**"
+                                "/error/**",
+                                "/produto",
+                                "/produto/**",
+                                "/movimentacao",
+                                "/movimentacao/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -83,6 +89,19 @@ public class SecurityConfiguracao {
                 new AutenticacaoProvider(autenticacaoService, passwordEncoder())
         );
         return authenticationManagerBuilder.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuracao = new CorsConfiguration();
+        configuracao.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuracao.setAllowedHeaders(List.of("*"));
+        configuracao.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuracao);
+        return source;
     }
 
     @Bean

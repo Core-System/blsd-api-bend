@@ -23,9 +23,5 @@ public class Cliente extends Usuario{
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-    @ManyToOne
-    @JoinColumn(name = "consulta_id")
-    private List<Consulta> consulta;
-
 
 }
