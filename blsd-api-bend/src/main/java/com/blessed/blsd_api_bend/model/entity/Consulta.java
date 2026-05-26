@@ -41,16 +41,10 @@ public class Consulta {
     @Column(name = "local_consulta")
     private LocalConsulta localConsulta;
 
-    @Enumerated(EnumType.STRING)
-    private StatusConsulta status = StatusConsulta.PENDENTE;
-
     @ManyToOne
     @JoinColumn(name = "fk_cliente")
     private Cliente cliente;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_funcionario")
-    private Funcionario funcionario;
 
     @ManyToMany
     @JoinTable(

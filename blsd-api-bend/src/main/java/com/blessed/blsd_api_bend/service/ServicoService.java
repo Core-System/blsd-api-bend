@@ -42,7 +42,16 @@ public class ServicoService implements ICrudService<Servico> {
 
     @Override
     public Servico atualizar(Long id, Servico req) {
-        return null;
+        return servicoRepository.findById(id).stream().
+                map(p->{
+                    p.setNome(p.getNome());
+                    p.setPreco(p.getPreco());
+                    p.setAvaliacao(p.getAvaliacao());
+                    p.setDescricacao(p.getDescricacao());
+                    p.setDuracao(p.getDuracao());
+                    p.setProdutos(p.getProdutos());
+                    return servicoRepository.save(p);
+                }).findAny().orElseThrow(()-> new ServicoNotFoundException("Servico não encontrado") );
     }
 
     /*    @Override

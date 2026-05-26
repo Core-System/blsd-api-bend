@@ -37,6 +37,7 @@ public class CalComService {
     }
 
     public String criarAgendamento(String nome, String email, String inicio) {
+
         RestTemplate restTemplate = new RestTemplate();
         String endpoint = "https://api.cal.com/v2/bookings";
 
@@ -45,7 +46,7 @@ public class CalComService {
         attendee.setEmail(email);
 
         CalComRequisicaoDTO agendamento = new CalComRequisicaoDTO();
-        agendamento.setEventTypeId(5180374);
+        agendamento.setEventTypeId(5805309);
         agendamento.setStart(inicio);
         agendamento.setAttendee(attendee);
 
