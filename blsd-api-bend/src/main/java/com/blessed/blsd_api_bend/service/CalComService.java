@@ -5,9 +5,8 @@ import com.blessed.blsd_api_bend.dto.agendamento.AttendeeDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.CalComRequisicaoDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
-import com.blessed.blsd_api_bend.model.entity.ClienteAgendamento;
-import com.blessed.blsd_api_bend.model.entity.ConsultaAgendamento;
-import com.blessed.blsd_api_bend.repository.ClienteAgendamentoRepository;
+import com.blessed.blsd_api_bend.model.entity.Consulta;
+import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -24,11 +23,14 @@ public class CalComService {
 
     @Value("${calcom.api.key}")
     private String apiKey;
+
     private final ConsultaRepository consultaRepository;
-    private final ClienteAgendamentoRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
     private final NotificacaoCliente notificacaoCliente;
 
-    public CalComService(ConsultaRepository consultaRepository, ClienteAgendamentoRepository clienteRepository, NotificacaoCliente notificacaoCliente) {
+    public CalComService(ConsultaRepository consultaRepository,
+                         ClienteRepository clienteRepository,
+                         NotificacaoCliente notificacaoCliente) {
         this.consultaRepository = consultaRepository;
         this.clienteRepository = clienteRepository;
         this.notificacaoCliente = notificacaoCliente;
@@ -61,28 +63,25 @@ public class CalComService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
 
-
             if (response.getStatusCode().is2xxSuccessful()) {
-                ClienteAgendamento clienteEncontrado = clienteRepository.findByEmail(email);
+                clienteRepository.findByEmail(email).ifPresentOrElse(cliente -> {
 
-                if (clienteEncontrado != null) {
-                    ConsultaAgendamento consulta = new ConsultaAgendamento();
+                    Consulta consulta = new Consulta();
                     consulta.setDataHoraInicio(dataHoraInicio);
                     consulta.setDataHoraFim(dataHoraFim);
-                    consulta.setCliente(clienteEncontrado);
+                    consulta.setCliente(cliente);
+                    consulta.setStatus(Consulta.StatusConsulta.PENDENTE);
+
                     consultaRepository.save(consulta);
 
                     NotificacaoSmsWhatsappRequest requestSms = new NotificacaoSmsWhatsappRequest(
-                            "Sistema Blessed7",
-                            11,
-                            "989977147",
-                            "Olá, " + clienteEncontrado.getNome() + ", Seu agendamento foi realizado com sucesso!"
+                            "Sistema Blessed7", 11, "989977147",
+                            "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
                     );
-
                     NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
-                            clienteEncontrado.getEmail(),
-                            "Agendamento no Studio site Blessed7",
-                            "Olá, " + clienteEncontrado.getNome() + ", Seu agendamento foi realizado com sucesso!"
+                            cliente.getEmail(),
+                            "Agendamento no Studio Blessed7",
+                            "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
                     );
 
                     try {
@@ -90,17 +89,17 @@ public class CalComService {
                         notificacaoCliente.enviarWhatsapp(requestSms);
                         notificacaoCliente.enviarEmail(emailRequest);
                     } catch (Exception e) {
-                        System.err.println("Aviso: Agendamento criado no Cal.com e salvo no banco, mas houve falha ao enviar as notificações: " + e.getMessage());
+                        System.err.println("Notificações falharam: " + e.getMessage());
                     }
-                } else {
-                    System.out.println("Aviso: cliente com email " + email + " não encontrado no banco.");
-                }
+
+                }, () -> System.out.println("Cliente não encontrado: " + email));
             }
 
-            return "Sucesso no agendamento: " + response.getStatusCode();
+            return "Sucesso: " + response.getStatusCode();
+
         } catch (HttpClientErrorException.BadRequest e) {
-            System.err.println("Erro na Cal.com: " + e.getResponseBodyAsString());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este horário já está reservado. Por favor, escolha outro.");
-        }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Este horário já está reservado. Por favor, escolha outro.");
         }
     }
+}
