@@ -20,6 +20,4 @@ public class ProdutoRequestDTO {
     private String nome;
     private BigDecimal preco;
     private Integer quantidade;
-    private List<Servico> servico;
-
 }

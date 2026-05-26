@@ -6,6 +6,7 @@ import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.repository.ServicoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class ServicoService implements ICrudService<Servico> {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Servico> listarTodos() {
         return servicoRepository.findAll();
     }
@@ -52,6 +54,17 @@ public class ServicoService implements ICrudService<Servico> {
                 }).findAny().orElseThrow(()-> new ServicoNotFoundException("Servico não encontrado") );
     }
 
+    /*    @Override
+        public Servico atualizar(Long id, Servico req) {
+            return servicoRepository.findById(id).stream().
+                    map(p->{
+                        p.setNome(p.getNome());
+                        p.setPreco(p.getPreco());
+                        p.setQuantidade(p.getQuantidade());
+                        return servicoRepository.save(p);
+                    }).findAny().orElseThrow(()-> new ServicoNotFoundException("Servico não encontrado") );
+        }
+    */
     @Override
     public void deletar(Long id) {
         Servico servico = listarPorId(id);
