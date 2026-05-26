@@ -57,7 +57,6 @@ public class ClienteService implements ICrudService<Cliente> {
             c.setTelefone(cliente.getTelefone());
             c.setAcesso(cliente.getAcesso());
             c.setEndereco(cliente.getEndereco());
-            c.setConsulta(cliente.getConsulta());
             return clienteRepository.save(c);
         }).orElseThrow(() -> new ClienteNotFoundException("Cliente não encontrado"));
     }

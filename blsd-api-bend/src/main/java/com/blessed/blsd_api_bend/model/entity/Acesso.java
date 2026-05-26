@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class Acesso {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,12 +22,9 @@ public class Acesso {
             implementation = TiposAcessos.class)
     @Enumerated(EnumType.STRING)
     @Column(name = "nome")
-    @Enumerated(EnumType.STRING)
     private TiposAcessos nome;
 
     @Schema(description = "Descrição detalhada do acesso",
             example = "Acesso administrativo com permissões completas")
     private String descricao;
-
-
 }

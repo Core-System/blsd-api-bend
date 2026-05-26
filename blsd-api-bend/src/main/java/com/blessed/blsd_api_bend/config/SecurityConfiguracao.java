@@ -74,7 +74,8 @@ public class SecurityConfiguracao {
                                 "/produto",
                                 "/produto/**",
                                 "/movimentacao",
-                                "/movimentacao/**"
+                                "/movimentacao/**",
+                                "/consulta/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -84,19 +85,6 @@ public class SecurityConfiguracao {
         http.addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuracao = new CorsConfiguration();
-        configuracao.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuracao.setAllowedHeaders(List.of("*"));
-        configuracao.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuracao);
-        return source;
     }
 
     @Bean
