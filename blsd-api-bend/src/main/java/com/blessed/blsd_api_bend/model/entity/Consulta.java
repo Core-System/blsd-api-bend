@@ -38,6 +38,11 @@ public class Consulta {
     @Column(name = "local_consulta")
     private LocalConsulta localConsulta;
 
+    @ManyToOne
+    @JoinColumn(name = "fk_cliente")
+    private Cliente cliente;
+
+
     @ManyToMany
     @JoinTable(
             name = "consulta_servico",
