@@ -6,6 +6,7 @@ import com.blessed.blsd_api_bend.dto.agendamento.CalComRequisicaoDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
 import com.blessed.blsd_api_bend.model.entity.Consulta;
+import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,7 +72,7 @@ public class CalComService {
                     consulta.setDataHoraInicio(dataHoraInicio);
                     consulta.setDataHoraFim(dataHoraFim);
                     consulta.setCliente(cliente);
-                    consulta.setStatus(Consulta.StatusConsulta.PENDENTE);
+                    consulta.setStatusConsulta(StatusConsulta.PENDENTE);
 
                     consultaRepository.save(consulta);
 

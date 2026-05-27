@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.model.entity;
 
 import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.model.enums.Pagamentos;
+import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -59,8 +60,6 @@ public class Consulta {
     @JoinColumn(name = "avaliacao_id")
     private Avaliacao avaliacao;
 
-    public enum StatusConsulta {
-        PENDENTE, CONCLUIDA, CANCELADA
-    }
+    private StatusConsulta statusConsulta;
 
 }

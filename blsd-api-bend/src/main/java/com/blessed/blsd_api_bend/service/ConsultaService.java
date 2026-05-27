@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.service;
 
 import com.blessed.blsd_api_bend.dto.consulta.*;
 import com.blessed.blsd_api_bend.model.entity.*;
+import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class ConsultaService {
         Consulta consulta = consultaRepository.findById(consultaId)
                 .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
 
-        if (consulta.getStatus() != Consulta.StatusConsulta.CONCLUIDA) {
+        if (consulta.getStatusConsulta() != StatusConsulta.CONCLUIDA) {
             throw new RuntimeException("Só é possível avaliar consultas concluídas");
         }
 
@@ -57,7 +58,7 @@ public class ConsultaService {
                 c.getId(),
                 c.getDataHoraInicio(),
                 c.getDataHoraFim(),
-                c.getStatus() != null ? c.getStatus().name() : "PENDENTE",
+                c.getStatusConsulta() != null ? c.getStatusConsulta().name() : "PENDENTE",
                 c.getServicos() != null
                         ? c.getServicos().stream().map(Servico::getNome).toList()
                         : List.of(),
