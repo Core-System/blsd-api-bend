@@ -1,11 +1,8 @@
 package com.blessed.blsd_api_bend.config;
 
 import com.blessed.blsd_api_bend.service    .AutenticacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -23,7 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -34,6 +30,42 @@ public class SecurityConfiguracao {
     private final AutenticacaoService autenticacaoService;
     private final AutenticacaoEntryPoint autenticacaoJwtEntryPoint;
     private final AutenticacaoFilter autenticacaoFilter;
+
+    String[] ROTAS_SWAGGER_E_DOCUMENTACAO = {
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/webjars/**",
+            "/v3/api-docs/**",
+            "/actuator/*"
+    };
+
+    String[] ROTAS_PUBLICAS = {
+            "/api/public/**",
+            "/api/public/authenticate",
+            "/usuarios/login/**",
+            "/error/**",
+            "/h2-console/**",
+            "/usuarios/link-agendamento"
+    };
+
+    String[] ROTAS_CLIENTES = {
+            "/cliente",
+            "/cliente/**"
+    };
+
+    String[] ROTAS_FUNCIONARIOS_E_GESTORES = {
+            "/produto",
+            "/produto/**",
+            "/consulta/**"
+    };
+
+    String[] ROTAS_EXCLUSIVAS_GESTORES = {
+            "/movimentacao",
+            "/movimentacao/**"
+    };
 
     public SecurityConfiguracao(AutenticacaoService autenticacaoService,
                                 AutenticacaoEntryPoint autenticacaoJwtEntryPoint,
@@ -55,28 +87,11 @@ public class SecurityConfiguracao {
                 .cors(Customizer.withDefaults())
                 .csrf(CsrfConfigurer<HttpSecurity>::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/api/public/**",
-                                "/api/public/authenticate",
-                                "/webjars/**",
-                                "/v3/api-docs/**",
-                                "/actuator/*",
-                                "/usuarios/login/**",
-                                "/cliente",
-                                "/cliente/**",
-                                "/h2-console/**",
-                                "/error/**",
-                                "/produto",
-                                "/produto/**",
-                                "/movimentacao",
-                                "/movimentacao/**",
-                                "/consulta/**"
-                        ).permitAll()
+                        .requestMatchers(ROTAS_PUBLICAS).permitAll()
+                        .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
+                        .requestMatchers(ROTAS_CLIENTES).permitAll()
+                        .requestMatchers(ROTAS_FUNCIONARIOS_E_GESTORES).permitAll()
+                        .requestMatchers(ROTAS_EXCLUSIVAS_GESTORES).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(autenticacaoJwtEntryPoint))
