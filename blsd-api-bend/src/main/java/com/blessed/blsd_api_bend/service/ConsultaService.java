@@ -36,7 +36,7 @@ public class ConsultaService {
 
         Avaliacao avaliacao = new Avaliacao();
         avaliacao.setNota(dto.getNota());
-        avaliacao.setDescricacao(dto.getDescricacao());
+        avaliacao.setDescricao(dto.getDescricacao());
         avaliacaoRepository.save(avaliacao);
 
         consulta.setAvaliacao(avaliacao);
@@ -51,7 +51,7 @@ public class ConsultaService {
             avaliacaoDTO = new AvaliacaoDTO(
                     c.getAvaliacao().getId(),
                     c.getAvaliacao().getNota(),
-                    c.getAvaliacao().getDescricacao()
+                    c.getAvaliacao().getDescricao()
             );
         }
         return new ConsultaResponseDTO(
