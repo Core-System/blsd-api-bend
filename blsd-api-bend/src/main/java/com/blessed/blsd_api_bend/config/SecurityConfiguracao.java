@@ -48,7 +48,7 @@ public class SecurityConfiguracao {
             "/usuarios/login/**",
             "/error/**",
             "/h2-console/**",
-            "/usuarios/link-agendamento"
+            "/usuarios/link-agendamento/**"
     };
 
     String[] ROTAS_CLIENTES = {

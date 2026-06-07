@@ -79,6 +79,11 @@ public class CalComService {
                     String data = "%02d/%02d/%d".formatted(zonedInicio.getDayOfMonth(), zonedInicio.getMonthValue(), zonedInicio.getYear());
 
                     String hora = "%02d:%02d".formatted(zonedInicio.getHour(), zonedInicio.getMinute());
+                    cliente.gerarToken();
+
+                    clienteRepository.save(cliente);
+
+                    String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
 
                     NotificacaoSmsWhatsappRequest requestSms = new NotificacaoSmsWhatsappRequest(
                             "Sistema Blessed7", 11, "989977147",
@@ -157,7 +162,7 @@ public class CalComService {
                                                 </div>
                                               </div>
                                             </div>
-                                    """.formatted(cliente.getNome(), procedimento, data, hora, cliente.getNome(), cliente.getNome())
+                                    """.formatted(cliente.getNome(), procedimento, data, hora, linkAgendamento, linkAgendamento)
                     );
 
                     try {

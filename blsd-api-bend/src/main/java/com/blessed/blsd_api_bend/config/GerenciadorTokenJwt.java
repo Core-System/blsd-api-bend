@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.config;
 
+import com.blessed.blsd_api_bend.model.entity.Acesso;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,18 @@ public class GerenciadorTokenJwt {
         return Jwts.builder().setSubject(authentication.getName())
                 .signWith(parseSecret()).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000)).compact();
+    }
+
+    public String generateToken(String username, Acesso acesso) {
+        final String role = acesso.getNome().toString();
+
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role)
+                .signWith(parseSecret())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000))
+                .compact();
     }
 
     public <T> T getClaimForToken(String token, Function<Claims, T> claimsResolver) {
