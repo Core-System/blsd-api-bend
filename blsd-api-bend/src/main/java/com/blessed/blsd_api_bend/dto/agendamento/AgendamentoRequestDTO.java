@@ -4,6 +4,7 @@ public class AgendamentoRequestDTO {
     private String nome;
     private String email;
     private String dataHoraInicio;
+    private String procedimento;
 
     public String getDataHoraInicio() {
         return dataHoraInicio;
@@ -27,5 +28,13 @@ public class AgendamentoRequestDTO {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getProcedimento() {
+        return procedimento;
+    }
+
+    public void setProcedimento(String procedimento) {
+        this.procedimento = procedimento;
     }
 }
