@@ -4,8 +4,10 @@ import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
+import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,10 +16,12 @@ public class ClienteService implements ICrudService<Cliente> {
 
     private final ClienteRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConsultaRepository consultaRepository;
 
-    public ClienteService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder) {
+    public ClienteService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder, ConsultaRepository consultaRepository) {
         this.clienteRepository = clienteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.consultaRepository = consultaRepository;
     }
 
     @Override
@@ -62,8 +66,11 @@ public class ClienteService implements ICrudService<Cliente> {
     }
 
     @Override
+    @Transactional
     public void deletar(Long id) {
         Cliente cliente = listarPorId(id);
+        // Remove consultas vinculadas antes para evitar FK constraint
+        consultaRepository.deleteAll(consultaRepository.findByClienteId(id));
         clienteRepository.delete(cliente);
     }
 }

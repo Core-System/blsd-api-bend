@@ -19,6 +19,6 @@ public class Avaliacao {
 
     private Integer nota;
 
-    private String descricacao;
+    private String descricao;
 
 }
