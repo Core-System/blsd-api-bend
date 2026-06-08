@@ -11,7 +11,7 @@ import java.util.List;
 public class AvaliacaoResponseDTO {
     private Long id;
     private Integer nota;
-    private String descricacao;
+    private String descricao;
     private String clienteNome;
     private String clienteUrlFoto;
     private List<String> servicos;
