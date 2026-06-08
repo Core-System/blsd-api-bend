@@ -90,7 +90,7 @@ public class SecurityConfiguracao {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(ROTAS_PUBLICAS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
-                        .requestMatchers(ROTAS_CLIENTES).permitAll()
+                        .requestMatchers(ROTAS_CLIENTES).hasAuthority("CLIENTE")
                         .requestMatchers(ROTAS_FUNCIONARIOS_E_GESTORES).permitAll()
                         .requestMatchers(ROTAS_EXCLUSIVAS_GESTORES).permitAll()
                         .anyRequest().authenticated()
