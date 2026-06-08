@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -22,6 +24,22 @@ public class Cliente extends Usuario{
     @OneToOne
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
+
+    @Column(name = "token_agendamento")
+    private String tokenAgendamento;
+
+    @Column(name = "expiracao_token_agendamento")
+    private LocalDateTime expiracaoTokenAgendamento;
+
+    public void gerarToken() {
+        this.tokenAgendamento = UUID.randomUUID().toString();
+        this.expiracaoTokenAgendamento = LocalDateTime.now().plusHours(24);
+    }
+
+    public void invalidarToken() {
+        this.tokenAgendamento = null;
+        this.expiracaoTokenAgendamento = null;
+    }
 
 
 }

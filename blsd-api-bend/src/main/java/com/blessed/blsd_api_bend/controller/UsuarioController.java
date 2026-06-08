@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
+@CrossOrigin("*")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -51,6 +52,12 @@ public class UsuarioController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(funcionarios);
+    }
+
+    @PostMapping("/link-agendamento")
+    public ResponseEntity<UsuarioTokenDTO> redirecionarAgendamento(@RequestParam(name = "code") String tokenAgendameto) {
+        UsuarioTokenDTO token = usuarioService.validarTokenAgendamento(tokenAgendameto);
+        return ResponseEntity.ok(token);
     }
 }
 

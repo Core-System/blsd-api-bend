@@ -34,5 +34,4 @@ public class Usuario {
     @JoinColumn(name = "acesso_id")
     private Acesso acesso;
 
-
 }

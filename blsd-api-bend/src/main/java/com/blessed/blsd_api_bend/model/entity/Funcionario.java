@@ -1,9 +1,7 @@
 package com.blessed.blsd_api_bend.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +16,7 @@ import java.util.List;
 @Setter
 public class Funcionario extends Usuario {
 
+    @Column
     private String cpf;
 
     @OneToOne

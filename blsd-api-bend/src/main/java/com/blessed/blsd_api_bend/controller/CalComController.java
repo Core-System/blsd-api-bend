@@ -17,7 +17,7 @@ public class CalComController {
 
     @PostMapping("/calcom/agendar")
     public ResponseEntity<String> agendar(@RequestBody AgendamentoRequestDTO request){
-        String resultado = calendarService.criarAgendamento(request.getNome(), request.getEmail(), request.getDataHoraInicio());
+        String resultado = calendarService.criarAgendamento(request.getNome(), request.getEmail(), request.getDataHoraInicio(), request.getProcedimento());
 
         return ResponseEntity.ok(resultado);
     }

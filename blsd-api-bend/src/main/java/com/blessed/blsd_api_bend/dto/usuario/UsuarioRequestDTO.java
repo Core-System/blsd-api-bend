@@ -31,7 +31,7 @@ public class UsuarioRequestDTO {
     private String senha;
 
     @Schema(description = "URL da foto de perfil", example = "https://meuservidor.com/fotos/maria.jpg")
-    @NotBlank
+//    @NotBlank
     private String urlFoto;
 
 
