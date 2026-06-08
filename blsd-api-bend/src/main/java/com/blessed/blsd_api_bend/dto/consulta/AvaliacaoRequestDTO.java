@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AvaliacaoRequestDTO {
     private Integer nota;
-    private String descricacao;
+    private String descricao;
 }

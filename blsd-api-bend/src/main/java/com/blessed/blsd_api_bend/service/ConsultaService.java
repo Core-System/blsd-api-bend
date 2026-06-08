@@ -36,7 +36,9 @@ public class ConsultaService {
 
         Avaliacao avaliacao = new Avaliacao();
         avaliacao.setNota(dto.getNota());
-        avaliacao.setDescricao(dto.getDescricacao());
+        avaliacao.setDescricao(dto.getDescricao());
+        avaliacao.setCliente(consulta.getCliente());
+        avaliacaoRepository.save(avaliacao);
         avaliacaoRepository.save(avaliacao);
 
         consulta.setAvaliacao(avaliacao);
