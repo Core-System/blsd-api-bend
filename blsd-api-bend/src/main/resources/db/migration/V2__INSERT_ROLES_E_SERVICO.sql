@@ -5,7 +5,7 @@ INSERT INTO acesso (nome, descricao) VALUES
 ('CLIENTE', 'Acesso ao agendamento e histórico');
 
 -- Serviços (os mesmos que estão hardcoded no frontend)
-INSERT INTO servico (nome, descricacao, preco, duracao) VALUES
+INSERT INTO servico (nome, descricao, preco, duracao) VALUES
 ('Limpeza de Pele', 'Tratamento profundo para remoção de impurezas e revitalização celular.', 280.00, 60),
 ('Massagem Relaxante', 'Equilíbrio perfeito entre técnicas ancestrais e óleos essenciais orgânicos.', 200.00, 60),
 ('Peeling de Diamante', 'Esfoliação mecânica controlada que promove a renovação celular, ideal para atenuar manchas, linhas finas e uniformizar a textura da pele.', 250.00, 60),

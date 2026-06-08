@@ -65,7 +65,7 @@ CREATE TABLE avaliacao
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     nota        BIGINT,
-    descricacao VARCHAR(255),
+    descricao VARCHAR(255),
     cliente_id BIGINT,
     FOREIGN KEY (cliente_id) REFERENCES cliente (id)
 );
@@ -74,7 +74,7 @@ CREATE TABLE servico
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
     nome         VARCHAR(45),
-    descricacao  VARCHAR(255),
+    descricao  VARCHAR(255),
     preco        DECIMAL(10, 2),
     duracao      BIGINT,
     avaliacao_id BIGINT,
