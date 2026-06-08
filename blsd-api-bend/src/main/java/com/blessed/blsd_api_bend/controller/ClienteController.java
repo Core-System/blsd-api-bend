@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.controller;
 
+import com.blessed.blsd_api_bend.dto.cliente.ClienteAtualizarRequestDTO;
 import com.blessed.blsd_api_bend.dto.cliente.ClienteRequestDTO;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.service.ClienteService;
@@ -52,13 +53,11 @@ public class ClienteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Cliente> atualizarCliente(@PathVariable Long id,
-                                                    @Valid @RequestBody ClienteRequestDTO clienteDTO) {
+                                                    @Valid @RequestBody ClienteAtualizarRequestDTO clienteDTO) {
         Cliente clienteExistente = clienteService.listarPorId(id);
-
 
         clienteExistente.setNome(clienteDTO.getNome());
         clienteExistente.setEmail(clienteDTO.getEmail());
-        clienteExistente.setSenha(clienteDTO.getSenha());
         clienteExistente.setDataNasc(clienteDTO.getDataNasc());
         clienteExistente.setUrlFoto(clienteDTO.getUrlFoto());
         clienteExistente.setTelefone(clienteDTO.getTelefone());
