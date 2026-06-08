@@ -6,9 +6,11 @@ import com.blessed.blsd_api_bend.dto.agendamento.CalComRequisicaoDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
 import com.blessed.blsd_api_bend.model.entity.Consulta;
+import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.ConsultaRepository;
+import com.blessed.blsd_api_bend.repository.ServicoRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Service
 public class CalComService {
@@ -28,13 +31,15 @@ public class CalComService {
     private final ConsultaRepository consultaRepository;
     private final ClienteRepository clienteRepository;
     private final NotificacaoCliente notificacaoCliente;
+    private final ServicoRepository servicoRepository;
 
     public CalComService(ConsultaRepository consultaRepository,
                          ClienteRepository clienteRepository,
-                         NotificacaoCliente notificacaoCliente) {
+                         NotificacaoCliente notificacaoCliente, ServicoRepository servicoRepository) {
         this.consultaRepository = consultaRepository;
         this.clienteRepository = clienteRepository;
         this.notificacaoCliente = notificacaoCliente;
+        this.servicoRepository = servicoRepository;
     }
 
     public String criarAgendamento(String nome, String email, String inicio, String procedimento) {
@@ -68,11 +73,15 @@ public class CalComService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 clienteRepository.findByEmail(email).ifPresentOrElse(cliente -> {
 
+                    Servico servicoEscolhido = servicoRepository.findByNome(procedimento)
+                            .orElseThrow(()->new RuntimeException("Serviço não encotrado"));
+
                     Consulta consulta = new Consulta();
                     consulta.setDataHoraInicio(dataHoraInicio);
                     consulta.setDataHoraFim(dataHoraFim);
                     consulta.setCliente(cliente);
                     consulta.setStatusConsulta(StatusConsulta.PENDENTE);
+                    consulta.setServicos(List.of(servicoEscolhido));
 
                     consultaRepository.save(consulta);
 

@@ -20,6 +20,8 @@ public class Acesso {
     @Schema(description = "Tipo de acesso do usuário",
             example = "ADMIN",
             implementation = TiposAcessos.class)
+
+
     @Enumerated(EnumType.STRING)
     @Column(name = "nome")
     private TiposAcessos nome;
