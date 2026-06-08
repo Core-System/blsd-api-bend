@@ -26,7 +26,7 @@ public class UsuarioRequestDTO {
     private String email;
 
     @Schema(description = "Senha do usuário (mínimo 8 caracteres)", example = "senhaSegura123")
-    @NotBlank
+//    @NotBlank
     @Size(min = 8)
     private String senha;
 
