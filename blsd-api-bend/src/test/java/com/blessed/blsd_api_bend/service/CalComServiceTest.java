@@ -40,9 +40,10 @@ class CalComServiceTest {
             String nome = "Gabriel";
             String email = "gabriel@email.com";
             String dataHoraInvalida = "2026-06-05T05:30:00";
+            String parametroExtra = "algumValor";
 
             assertThrows(Exception.class, () -> {
-                calComService.criarAgendamento(nome, email, dataHoraInvalida);
+                calComService.criarAgendamento(nome, email, dataHoraInvalida, parametroExtra);
             });
 
             verifyNoInteractions(consultaRepository);
@@ -52,12 +53,14 @@ class CalComServiceTest {
         @Test
         @DisplayName("Deve lançar exceção se os parâmetros obrigatórios forem nulos ou vazios")
         void deveFalharSeParametrosForemInvalidos() {
+            String parametroExtra = "algumValor";
+
             assertThrows(Exception.class, () -> {
-                calComService.criarAgendamento("", "email@valido.com", "2026-06-05T05:30:00Z");
+                calComService.criarAgendamento("", "email@valido.com", "2026-06-05T05:30:00Z", parametroExtra);
             });
 
             assertThrows(Exception.class, () -> {
-                calComService.criarAgendamento("Gabriel", null, "2026-06-05T05:30:00Z");
+                calComService.criarAgendamento("Gabriel", null, "2026-06-05T05:30:00Z", parametroExtra);
             });
         }
     }

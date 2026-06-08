@@ -4,6 +4,7 @@ import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
+import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,9 @@ class ClienteServiceTest {
 
     @Mock
     private ClienteRepository clienteRepository;
+
+    @Mock
+    private ConsultaRepository consultaRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;

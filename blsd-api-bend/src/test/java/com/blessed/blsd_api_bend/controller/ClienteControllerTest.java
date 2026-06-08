@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ClienteController.class)
 class ClienteControllerTest {
 
@@ -110,15 +112,15 @@ class ClienteControllerTest {
                     .thenReturn(clienteSalvo);
 
             String bodyJson = """
-                    {
-                        "nome": "Marcos",
-                        "email": "marcos@email.com",
-                        "senha": "senhaSegura123",
-                        "dataNasc": "2000-01-01",
-                        "urlFoto": "http://foto.com/marcos.png",
-                        "telefone": "11999999999",
-                        "acesso": "CLIENTE"
-                    }
+{
+            "nome": "Marcos",
+            "email": "marcos@email.com",
+            "senha": "senhaSegura123",
+            "dataNasc": "2000-01-01",
+            "urlFoto": "http://foto.com/marcos.png",
+            "telefone": "11999999999",
+            "acesso": "CLIENTE"
+        }
                     """;
 
             mockMvc.perform(post("/cliente")
@@ -151,11 +153,14 @@ class ClienteControllerTest {
                     .thenReturn(clienteAtualizado);
 
             String bodyJson = """
-                    {
-                        "nome": "Marcos Novo",
-                        "email": "marcos@email.com",
-                        "senha": "novaSenha123"
-                    }
+{
+            "nome": "Marcos Novo",
+            "email": "marcos@email.com",
+            "senha": "novaSenha123",
+            "dataNasc": "2000-01-01",
+            "telefone": "11999999999",
+            "acesso": "CLIENTE"
+        }
                     """;
 
             mockMvc.perform(put("/cliente/1")

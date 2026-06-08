@@ -49,18 +49,20 @@ class CalComControllerTest {
         @DisplayName("Deve realizar um agendamento com sucesso e retornar 200")
         void deveAgendarComSucesso() throws Exception {
             Mockito.when(calComService.criarAgendamento(
-                    Mockito.eq("Flavio"),
-                    Mockito.eq("flavio@email.com"),
-                    Mockito.eq("2026-06-05T10:00:00Z"))
+                    Mockito.anyString(),
+                    Mockito.anyString(),
+                    Mockito.anyString(),
+                    Mockito.anyString())
             ).thenReturn("Sucesso: 201 CREATED");
 
             String bodyJson = """
-                    {
-                        "nome": "Flavio",
-                        "email": "flavio@email.com",
-                        "dataHoraInicio": "2026-06-05T10:00:00Z"
-                    }
-                    """;
+            {
+                "nome": "Flavio",
+                "email": "flavio@email.com",
+                "dataHoraInicio": "2026-06-05T10:00:00Z",
+                "procedimento": "Consulta Inicial"
+            }
+            """;
 
             mockMvc.perform(post("/api/calendario/calcom/agendar")
                             .contentType(MediaType.APPLICATION_JSON)

@@ -25,11 +25,11 @@ public class Cliente extends Usuario{
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-    @Column(name = "token_agendamento")
-    private String tokenAgendamento;
+        @Column(name = "token_agendamento")
+        private String tokenAgendamento;
 
-    @Column(name = "expiracao_token_agendamento")
-    private LocalDateTime expiracaoTokenAgendamento;
+        @Column(name = "expiracao_token_agendamento")
+        private LocalDateTime expiracaoTokenAgendamento;
 
     public void gerarToken() {
         this.tokenAgendamento = UUID.randomUUID().toString();

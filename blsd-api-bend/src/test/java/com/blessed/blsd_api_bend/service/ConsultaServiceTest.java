@@ -47,7 +47,7 @@ class ConsultaServiceTest {
 
             AvaliacaoRequestDTO dto = new AvaliacaoRequestDTO();
             dto.setNota(5);
-            dto.setDescricacao("Excelente!");
+            dto.setDescricao("Excelente!");
 
             when(consultaRepository.findById(id)).thenReturn(Optional.of(consulta));
             when(avaliacaoRepository.save(any(Avaliacao.class))).thenAnswer(i -> i.getArgument(0));
