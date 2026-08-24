@@ -4,6 +4,7 @@ import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsE
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.List;
 public class FuncionarioService implements ICrudService<Funcionario> {
 
     private final FuncionarioRepository funcionarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public FuncionarioService(FuncionarioRepository funcionarioRepository) {
+    public FuncionarioService(FuncionarioRepository funcionarioRepository, PasswordEncoder passwordEncoder) {
         this.funcionarioRepository = funcionarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -39,6 +42,7 @@ public class FuncionarioService implements ICrudService<Funcionario> {
                 && funcionarioRepository.existsByCpf(funcionario.getCpf())) {
             throw new FuncionarioAlreadyExistsException("Funcionario já existente");
         }
+        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
         return funcionarioRepository.save(funcionario);
     }
 
@@ -47,7 +51,7 @@ public class FuncionarioService implements ICrudService<Funcionario> {
         return funcionarioRepository.findById(id).map(f -> {
             f.setNome(funcionario.getNome());
             f.setEmail(funcionario.getEmail());
-            f.setSenha(funcionario.getSenha());
+            f.setSenha(passwordEncoder.encode(funcionario.getSenha()));
             f.setUrlFoto(funcionario.getUrlFoto());
             f.setCpf(funcionario.getCpf());
             f.setEmpresa(funcionario.getEmpresa());

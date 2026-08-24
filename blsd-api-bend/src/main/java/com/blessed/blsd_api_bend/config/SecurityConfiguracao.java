@@ -48,8 +48,7 @@ public class SecurityConfiguracao {
             "/usuarios/login/**",
             "/error/**",
             "/h2-console/**",
-            "/usuarios/link-agendamento/**",
-            "/funcionario/**"
+            "/usuarios/link-agendamento/**"
     };
 
     String[] ROTAS_CLIENTES = {
@@ -60,7 +59,8 @@ public class SecurityConfiguracao {
     String[] ROTAS_FUNCIONARIOS_E_GESTORES = {
             "/produto",
             "/produto/**",
-            "/consulta/**"
+            "/consulta/**",
+            "/funcionario/**"
     };
 
     String[] ROTAS_EXCLUSIVAS_GESTORES = {
@@ -90,9 +90,9 @@ public class SecurityConfiguracao {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(ROTAS_PUBLICAS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
-                        .requestMatchers(ROTAS_CLIENTES).permitAll()
-                        .requestMatchers(ROTAS_FUNCIONARIOS_E_GESTORES).permitAll()
-                        .requestMatchers(ROTAS_EXCLUSIVAS_GESTORES).permitAll()
+                        .requestMatchers(ROTAS_CLIENTES).hasAnyRole("CLIENTE", "FUNCIONARIO", "GESTOR")
+                        .requestMatchers(ROTAS_FUNCIONARIOS_E_GESTORES).hasAnyRole("FUNCIONARIO", "GESTOR")
+                        .requestMatchers(ROTAS_EXCLUSIVAS_GESTORES).hasRole("GESTOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(autenticacaoJwtEntryPoint))
