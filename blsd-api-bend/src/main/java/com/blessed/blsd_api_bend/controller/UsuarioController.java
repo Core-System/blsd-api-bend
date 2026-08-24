@@ -1,6 +1,9 @@
 package com.blessed.blsd_api_bend.controller;
 
+import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.dto.usuario.LoginRequestDTO;
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioTokenDTO;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
@@ -36,8 +39,9 @@ public class UsuarioController {
 
     @GetMapping("/clientes")
     @SecurityRequirement(name = "Bearer")
-    public ResponseEntity<List<Cliente>> listarClientes() {
-        List<Cliente> clientes = clienteService.listarTodos();
+    public ResponseEntity<List<ClienteResponseDTO>> listarClientes() {
+        List<ClienteResponseDTO> clientes = clienteService.listarTodos()
+                .stream().map(UsuarioMapper::toResponseDTO).toList();
         if (clientes.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -46,8 +50,9 @@ public class UsuarioController {
 
     @GetMapping("/funcionarios")
     @SecurityRequirement(name = "Bearer")
-    public ResponseEntity<List<Funcionario>> listarFuncionarios() {
-        List<Funcionario> funcionarios = funcionarioService.listarTodos();
+    public ResponseEntity<List<FuncionarioResponseDTO>> listarFuncionarios() {
+        List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos()
+                .stream().map(UsuarioMapper::toResponseDTO).toList();
         if (funcionarios.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

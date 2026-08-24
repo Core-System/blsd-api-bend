@@ -1,7 +1,9 @@
 package com.blessed.blsd_api_bend.dto.usuario;
 
 import com.blessed.blsd_api_bend.dto.cliente.ClienteRequestDTO;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.entity.Usuario;
@@ -66,7 +68,28 @@ public class UsuarioMapper {
             return usuarioListarDTO;
         }
 
+    public static ClienteResponseDTO toResponseDTO(Cliente cliente) {
+        return new ClienteResponseDTO(
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getDataNasc(),
+                cliente.getTelefone(),
+                cliente.getUrlFoto()
+        );
+    }
 
+    public static FuncionarioResponseDTO toResponseDTO(Funcionario funcionario) {
+        return new FuncionarioResponseDTO(
+                funcionario.getId(),
+                funcionario.getNome(),
+                funcionario.getEmail(),
+                funcionario.getCpf(),
+                funcionario.getUrlFoto(),
+                funcionario.getEmpresa() != null ? funcionario.getEmpresa().getNome() : null,
+                funcionario.getAcesso().getNome().name()
+        );
+    }
 
 
 
