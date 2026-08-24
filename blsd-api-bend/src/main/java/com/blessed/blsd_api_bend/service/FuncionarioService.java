@@ -51,7 +51,10 @@ public class FuncionarioService implements ICrudService<Funcionario> {
         return funcionarioRepository.findById(id).map(f -> {
             f.setNome(funcionario.getNome());
             f.setEmail(funcionario.getEmail());
-            f.setSenha(passwordEncoder.encode(funcionario.getSenha()));
+            String novaSenha = funcionario.getSenha();
+            if (novaSenha != null && !novaSenha.isBlank()){
+                f.setSenha(passwordEncoder.encode(novaSenha));
+            }
             f.setUrlFoto(funcionario.getUrlFoto());
             f.setCpf(funcionario.getCpf());
             f.setEmpresa(funcionario.getEmpresa());

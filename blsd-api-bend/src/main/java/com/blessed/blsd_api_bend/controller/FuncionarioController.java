@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.controller;
 
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioAtualizarRequestDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
@@ -56,8 +57,9 @@ public class FuncionarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<FuncionarioResponseDTO> atualizarFuncionario(@PathVariable Long id,
-                                                                       @Valid @RequestBody FuncionarioRequestDTO funcionarioDTO) {
+                                                                       @Valid @RequestBody FuncionarioAtualizarRequestDTO funcionarioDTO) {
         Funcionario funcionarioExistente = funcionarioService.listarPorId(id);
+
         funcionarioExistente.setNome(funcionarioDTO.getNome());
         funcionarioExistente.setEmail(funcionarioDTO.getEmail());
         funcionarioExistente.setSenha(funcionarioDTO.getSenha());
