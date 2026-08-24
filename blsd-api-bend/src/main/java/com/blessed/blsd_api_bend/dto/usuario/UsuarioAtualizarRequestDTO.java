@@ -33,8 +33,4 @@ public class UsuarioAtualizarRequestDTO {
     @Schema(description = "URL da foto de perfil", example = "https://meuservidor.com/fotos/maria.jpg")
 //    @NotBlank
     private String urlFoto;
-
-
-    @NotNull
-    private Acesso acesso;
 }

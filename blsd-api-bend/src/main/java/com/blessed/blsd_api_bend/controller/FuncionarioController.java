@@ -62,7 +62,9 @@ public class FuncionarioController {
 
         funcionarioExistente.setNome(funcionarioDTO.getNome());
         funcionarioExistente.setEmail(funcionarioDTO.getEmail());
-        funcionarioExistente.setSenha(funcionarioDTO.getSenha());
+        if (funcionarioDTO.getSenha() != null && !funcionarioDTO.getSenha().isBlank()) {
+            funcionarioExistente.setSenha(funcionarioDTO.getSenha());
+        }
         funcionarioExistente.setCpf(funcionarioDTO.getCpf());
         funcionarioExistente.setUrlFoto(funcionarioDTO.getUrlFoto());
         funcionarioExistente.setEmpresa(funcionarioDTO.getEmpresa());
