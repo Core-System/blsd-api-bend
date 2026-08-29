@@ -32,7 +32,6 @@ public class AvaliacaoService {
     private AvaliacaoResponseDTO toDTO(Consulta c) {
         Avaliacao av = c.getAvaliacao();
         return new AvaliacaoResponseDTO(
-                av.getId(),
                 av.getNota(),
                 av.getDescricao(),
                 c.getCliente() != null ? c.getCliente().getNome() : null,

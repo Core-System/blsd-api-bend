@@ -3,79 +3,62 @@ package com.blessed.blsd_api_bend.controller;
 import com.blessed.blsd_api_bend.dto.cliente.ClienteAtualizarRequestDTO;
 import com.blessed.blsd_api_bend.dto.cliente.ClienteRequestDTO;
 import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
-import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
-import com.blessed.blsd_api_bend.model.entity.Acesso;
-import com.blessed.blsd_api_bend.model.entity.Cliente;
-import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
-import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.service.ClienteService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/cliente")
 public class ClienteController {
 
     private final ClienteService clienteService;
-    private final AcessoRepository acessoRepository;
 
-    public ClienteController(ClienteService clienteService, AcessoRepository acessoRepository) {
+    public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
-        this.acessoRepository = acessoRepository;
     }
 
     @GetMapping
-    public ResponseEntity<List<ClienteResponseDTO>> getCliente() {
-        List<ClienteResponseDTO> clientes = clienteService.listarTodos()
-                .stream()
-                .map(UsuarioMapper::toResponseDTO)
-                .toList();
-        return ResponseEntity.ok(clientes);
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<Page<ClienteResponseDTO>> listarClientes(Pageable pageable) {
+        return ResponseEntity.ok(clienteService.listarTodos(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> getClienteById(@PathVariable Long id) {
-        Cliente cliente = clienteService.listarPorId(id);
-        return ResponseEntity.ok(UsuarioMapper.toResponseDTO(cliente));
+    @PreAuthorize("hasAuthority('GESTOR') or (hasAuthority('CLIENTE') and #id == principal.id)")
+    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponseDTO> criarCliente(@Valid @RequestBody ClienteRequestDTO cliente) {
-        Cliente clienteCriado = UsuarioMapper.of(cliente); // reaproveita o mapper já existente
+    public ResponseEntity<ClienteResponseDTO> criarCliente(@Valid @RequestBody ClienteRequestDTO clienteDTO) {
+        ClienteResponseDTO salvo = clienteService.cadastrar(clienteDTO);
 
-        Acesso acessoCliente = acessoRepository.findByNome(TiposAcessos.CLIENTE)
-                .orElseThrow(() -> new IllegalStateException("Acesso CLIENTE não cadastrado no banco"));
-        clienteCriado.setAcesso(acessoCliente);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(salvo.getId())
+                .toUri();
 
-        Cliente salvo = clienteService.cadastrar(clienteCriado);
-        return ResponseEntity.status(201).body(UsuarioMapper.toResponseDTO(salvo));
+        return ResponseEntity.created(location).body(salvo);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('GESTOR') or (hasAuthority('CLIENTE') and #id == principal.id)")
     public ResponseEntity<ClienteResponseDTO> atualizarCliente(@PathVariable Long id,
                                                                @Valid @RequestBody ClienteAtualizarRequestDTO clienteDTO) {
-        Cliente clienteExistente = clienteService.listarPorId(id);
-        clienteExistente.setNome(clienteDTO.getNome());
-        clienteExistente.setEmail(clienteDTO.getEmail());
-        clienteExistente.setDataNasc(clienteDTO.getDataNasc());
-        clienteExistente.setUrlFoto(clienteDTO.getUrlFoto());
-        clienteExistente.setTelefone(clienteDTO.getTelefone());
-
-        Cliente atualizado = clienteService.atualizar(id, clienteExistente);
-        return ResponseEntity.ok(UsuarioMapper.toResponseDTO(atualizado));
+        return ResponseEntity.ok(clienteService.atualizar(id, clienteDTO));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<Void> deletarCliente(@PathVariable Long id) {
         clienteService.deletar(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
-
 }

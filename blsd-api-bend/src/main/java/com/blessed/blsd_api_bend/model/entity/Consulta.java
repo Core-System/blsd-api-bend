@@ -3,7 +3,6 @@ package com.blessed.blsd_api_bend.model.entity;
 import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.model.enums.Pagamentos;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,10 +41,9 @@ public class Consulta {
     @Column(name = "local_consulta")
     private LocalConsulta localConsulta;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fk_cliente")
     private Cliente cliente;
-
 
     @ManyToMany
     @JoinTable(
@@ -53,13 +51,12 @@ public class Consulta {
             joinColumns = @JoinColumn(name = "consulta_id"),
             inverseJoinColumns = @JoinColumn(name = "servico_id")
     )
-    @JsonIgnore
     private List<Servico> servicos;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "avaliacao_id")
     private Avaliacao avaliacao;
 
+    @Enumerated(EnumType.STRING)
     private StatusConsulta statusConsulta;
-
 }

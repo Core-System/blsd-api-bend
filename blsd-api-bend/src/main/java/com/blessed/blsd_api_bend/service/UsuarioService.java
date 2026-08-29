@@ -59,36 +59,38 @@ public class UsuarioService {
         );
     }
 
-    public UsuarioTokenDTO validarTokenAgendamento(String tokenAgendameto){
-        Cliente clienteEncotrado = this.clienteRepository.findByTokenAgendamento(tokenAgendameto)
-                .orElseThrow(()-> new ClienteNotFoundException("Usuário não encontrado"));
+    public UsuarioTokenDTO validarTokenAgendamento(String tokenAgendamento) {
+        Cliente clienteEncontrado = this.clienteRepository.findByTokenAgendamento(tokenAgendamento)
+                .orElseThrow(() -> new ClienteNotFoundException("Token inválido ou usuário não encontrado"));
+
+        if (clienteEncontrado.getTokenAgendamento() == null) {
+            throw new RuntimeException("Este token já foi utilizado");
+        }
 
         LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(clienteEncontrado.getExpiracaoTokenAgendamento())) {
+            throw new RuntimeException("Token expirado");
+        }
 
-        if(now.isAfter(clienteEncotrado.getExpiracaoTokenAgendamento())){
+        if (!tokenAgendamento.equals(clienteEncontrado.getTokenAgendamento())) {
             throw new RuntimeException("Token inválido");
         }
 
-        if(!tokenAgendameto.equalsIgnoreCase(clienteEncotrado.getTokenAgendamento())){
-            throw new RuntimeException("Esse token já foi utilizado");
-        }
+        String token = gerenciadorTokenJwt.generateToken(
+                clienteEncontrado.getEmail(),
+                clienteEncontrado.getAcesso(),
+                clienteEncontrado.getId()
+        );
 
-        if(clienteEncotrado.getTokenAgendamento() == null){
-            throw new RuntimeException("Esse token já foi utilizado");
-        }
+        clienteEncontrado.invalidarToken();
+        this.clienteRepository.save(clienteEncontrado);
 
-        String token = gerenciadorTokenJwt.generateToken(clienteEncotrado.getEmail(), clienteEncotrado.getAcesso());
-
-
-        clienteEncotrado.invalidarToken();
-
-        this.clienteRepository.save(clienteEncotrado);
         return new UsuarioTokenDTO(
-                clienteEncotrado.getId(),
-                clienteEncotrado.getNome(),
-                clienteEncotrado.getEmail(),
+                clienteEncontrado.getId(),
+                clienteEncontrado.getNome(),
+                clienteEncontrado.getEmail(),
                 token,
-                clienteEncotrado.getAcesso()
+                clienteEncontrado.getAcesso()
         );
     }
 }

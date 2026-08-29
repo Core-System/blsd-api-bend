@@ -9,7 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AvaliacaoResponseDTO {
-    private Long id;
     private Integer nota;
     private String descricao;
     private String clienteNome;
