@@ -61,6 +61,10 @@ public class ClienteService {
             throw new ClienteAlreadyExistsException("Este e-mail já está em uso.");
         }
 
+        if(clienteRepository.existsByTelefone(dto.getTelefone())){
+            throw new ClienteAlreadyExistsException("Este telefone já está em uso.");
+        }
+
         Cliente cliente = UsuarioMapper.of(dto);
         cliente.setSenha(passwordEncoder.encode(dto.getSenha()));
 

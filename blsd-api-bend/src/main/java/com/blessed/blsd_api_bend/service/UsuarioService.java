@@ -51,11 +51,8 @@ public class UsuarioService {
                         .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado")));
 
         return new UsuarioTokenDTO(
-                usuario.getId(),
                 usuario.getNome(),
-                usuario.getEmail(),
-                token,
-                usuario.getAcesso()
+                token
         );
     }
 
@@ -86,11 +83,8 @@ public class UsuarioService {
         this.clienteRepository.save(clienteEncontrado);
 
         return new UsuarioTokenDTO(
-                clienteEncontrado.getId(),
                 clienteEncontrado.getNome(),
-                clienteEncontrado.getEmail(),
-                token,
-                clienteEncontrado.getAcesso()
+                token
         );
     }
 }

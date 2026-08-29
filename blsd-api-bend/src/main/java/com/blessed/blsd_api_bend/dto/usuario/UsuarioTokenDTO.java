@@ -10,10 +10,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 public class UsuarioTokenDTO {
-
-    private Long id;
     private String nome;
-    private String email;
     private String token;
-    private Acesso acesso;
 }
