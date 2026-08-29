@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.config;
 
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioDetalheDTO;
 import com.blessed.blsd_api_bend.model.entity.Acesso;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -51,8 +52,8 @@ public class GerenciadorTokenJwt {
                 .collect(Collectors.joining(","));
 
         Long usuarioId = null;
-        if (authentication.getPrincipal() instanceof UsuarioDetalhes) {
-            usuarioId = ((UsuarioDetalhes) authentication.getPrincipal()).getId();
+        if (authentication.getPrincipal() instanceof UsuarioDetalheDTO) {
+            usuarioId = ((UsuarioDetalheDTO) authentication.getPrincipal()).getId();
         }
 
         return Jwts.builder()

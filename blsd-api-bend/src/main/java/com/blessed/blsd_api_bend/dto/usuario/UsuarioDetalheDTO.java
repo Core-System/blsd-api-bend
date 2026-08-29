@@ -12,6 +12,9 @@ import java.util.List;
 
 @Getter
 public class UsuarioDetalheDTO implements UserDetails {
+
+    private final Long id;
+
     private final String nome;
 
     private final String email;
@@ -22,10 +25,15 @@ public class UsuarioDetalheDTO implements UserDetails {
 
 
     public UsuarioDetalheDTO(Usuario usuario) {
+        this.id = usuario.getId();
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.senha = usuario.getSenha();
         this.role = usuario.getAcesso().getNome().name();
+    }
+
+    public Long getId() {
+        return id;
     }
 
     @Override

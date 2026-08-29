@@ -24,7 +24,7 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
-    private final AcessoRepository acessoRepository; // Trazido do Controller
+    private final AcessoRepository acessoRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConsultaRepository consultaRepository;
 
@@ -50,7 +50,6 @@ public class ClienteService {
         return UsuarioMapper.toResponseDTO(cliente);
     }
 
-    // Método utilitário privado para ser reaproveitado internamente
     private Cliente buscarEntidadePorId(Long id) {
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNotFoundException("Cliente com ID " + id + " não encontrado."));
