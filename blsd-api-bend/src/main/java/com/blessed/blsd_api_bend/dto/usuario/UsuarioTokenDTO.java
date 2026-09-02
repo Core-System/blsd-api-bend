@@ -12,4 +12,5 @@ import lombok.experimental.SuperBuilder;
 public class UsuarioTokenDTO {
     private String nome;
     private String token;
+    private String urlFoto;
 }

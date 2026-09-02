@@ -82,9 +82,7 @@ public class UsuarioMapper {
                 funcionario.getNome(),
                 funcionario.getEmail(),
                 funcionario.getCpf(),
-                funcionario.getUrlFoto(),
-                funcionario.getEmpresa() != null ? funcionario.getEmpresa().getNome() : null,
-                funcionario.getAcesso().getNome().name()
+                funcionario.getUrlFoto()
         );
     }
 

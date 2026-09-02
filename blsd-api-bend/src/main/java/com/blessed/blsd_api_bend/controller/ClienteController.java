@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -59,6 +60,15 @@ public class ClienteController {
     @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<Void> deletarCliente(@PathVariable Long id) {
         clienteService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/foto")
+    public ResponseEntity<Void> atualizarFoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+
+        clienteService.atualizarFotoPerfil(id, file);
         return ResponseEntity.noContent().build();
     }
 }

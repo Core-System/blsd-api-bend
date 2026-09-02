@@ -1,2 +1,2 @@
-INSERT INTO funcionario(nome, email, senha, url_foto, cpf, acesso_id)
-VALUES ("Fernanda Ancila Chiazza Alvim","fernanda@blessed7.com","$2a$10$Hc.n0dHZbUv/0Ay7Ayz/.eRQeZWVULH8VtCGN7.1ud6L8CguNRZi.","https://i.pravatar.cc/150","09347360066",1);
+INSERT INTO funcionario(nome, email, senha, url_foto, cpf, data_criacao, acesso_id)
+VALUES ("Fernanda Ancila Chiazza Alvim","fernanda@blessed7.com","ghcb n","https://i.pravatar.cc/150","09347360066", NOW(),1);

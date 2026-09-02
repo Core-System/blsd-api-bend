@@ -52,7 +52,8 @@ public class UsuarioService {
 
         return new UsuarioTokenDTO(
                 usuario.getNome(),
-                token
+                token,
+                usuario.getUrlFoto()
         );
     }
 
@@ -84,7 +85,8 @@ public class UsuarioService {
 
         return new UsuarioTokenDTO(
                 clienteEncontrado.getNome(),
-                token
+                token,
+                clienteEncontrado.getUrlFoto()
         );
     }
 }

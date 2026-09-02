@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -27,15 +28,17 @@ public class ClienteService {
     private final AcessoRepository acessoRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConsultaRepository consultaRepository;
+    private final FileStorageService fileStorageService;
 
     public ClienteService(ClienteRepository clienteRepository,
                           AcessoRepository acessoRepository,
                           PasswordEncoder passwordEncoder,
-                          ConsultaRepository consultaRepository) {
+                          ConsultaRepository consultaRepository, FileStorageService fileStorageService) {
         this.clienteRepository = clienteRepository;
         this.acessoRepository = acessoRepository;
         this.passwordEncoder = passwordEncoder;
         this.consultaRepository = consultaRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     @Transactional(readOnly = true)
@@ -103,5 +106,13 @@ public class ClienteService {
 
         consultaRepository.deleteAll(consultaRepository.findByClienteId(id));
         clienteRepository.delete(cliente);
+    }
+
+    public void atualizarFotoPerfil(Long clienteId, MultipartFile file) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado."));
+        String caminhoRelativo = fileStorageService.armazenarArquivo(file);
+        cliente.setUrlFoto("/uploads/" + caminhoRelativo);
+        clienteRepository.save(cliente);
     }
 }

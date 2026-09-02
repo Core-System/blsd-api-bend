@@ -1,31 +1,41 @@
 package com.blessed.blsd_api_bend.service;
 
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.model.entity.Acesso;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
+import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
+import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Service
-public class FuncionarioService implements ICrudService<Funcionario> {
+public class FuncionarioService {
 
     private final FuncionarioRepository funcionarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
+    private final AcessoRepository acessoRepository;
 
-    public FuncionarioService(FuncionarioRepository funcionarioRepository, PasswordEncoder passwordEncoder) {
+    public FuncionarioService(FuncionarioRepository funcionarioRepository, PasswordEncoder passwordEncoder, FileStorageService fileStorageService, AcessoRepository acessoRepository) {
         this.funcionarioRepository = funcionarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.fileStorageService = fileStorageService;
+        this.acessoRepository = acessoRepository;
     }
 
-    @Override
     public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
-    @Override
     public Funcionario listarPorId(Long id) {
         return funcionarioRepository.findById(id)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
@@ -36,17 +46,28 @@ public class FuncionarioService implements ICrudService<Funcionario> {
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-    @Override
-    public Funcionario cadastrar(Funcionario funcionario) {
-        if (funcionarioRepository.existsByEmail(funcionario.getEmail())
-                && funcionarioRepository.existsByCpf(funcionario.getCpf())) {
-            throw new FuncionarioAlreadyExistsException("Funcionario já existente");
+    @Transactional
+    public FuncionarioResponseDTO cadastrar(FuncionarioRequestDTO dto) {
+        if (funcionarioRepository.existsByEmail(dto.getEmail())) {
+            throw new FuncionarioAlreadyExistsException("Este e-mail já está em uso.");
         }
-        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
-        return funcionarioRepository.save(funcionario);
+
+        if(funcionarioRepository.existsByCpf(dto.getCpf())){
+            throw new FuncionarioAlreadyExistsException("Este cpf já está em uso.");
+        }
+
+        Funcionario funcionario = UsuarioMapper.of(dto);
+        funcionario.setSenha(passwordEncoder.encode(dto.getSenha()));
+
+        Acesso acessoCliente = acessoRepository.findByNome(TiposAcessos.FUNCIONARIO)
+                .orElseThrow(() -> new IllegalStateException("Acesso FUNCIONARIO não inicializado no sistema."));
+
+        funcionario.setAcesso(acessoCliente);
+
+        Funcionario salvo = funcionarioRepository.save(funcionario);
+        return UsuarioMapper.toResponseDTO(salvo);
     }
 
-    @Override
     public Funcionario atualizar(Long id, Funcionario funcionario) {
         return funcionarioRepository.findById(id).map(f -> {
             f.setNome(funcionario.getNome());
@@ -64,9 +85,16 @@ public class FuncionarioService implements ICrudService<Funcionario> {
         }).orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
     }
 
-    @Override
     public void deletar(Long id) {
         Funcionario funcionario = listarPorId(id);
         funcionarioRepository.delete(funcionario);
+    }
+
+    public void atualizarFotoPerfil(Long funcionarioId, MultipartFile file) {
+        Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado."));
+        String caminhoRelativo = fileStorageService.armazenarArquivo(file);
+        funcionario.setUrlFoto("/uploads/" + caminhoRelativo);
+        funcionarioRepository.save(funcionario);
     }
 }
