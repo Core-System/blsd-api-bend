@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.service;
 
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioAtualizarRequestDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
@@ -24,12 +25,13 @@ public class FuncionarioService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final AcessoRepository acessoRepository;
-
-    public FuncionarioService(FuncionarioRepository funcionarioRepository, PasswordEncoder passwordEncoder, FileStorageService fileStorageService, AcessoRepository acessoRepository) {
+    private final UnicidadeService unicidadeService;
+    public FuncionarioService(FuncionarioRepository funcionarioRepository, PasswordEncoder passwordEncoder, FileStorageService fileStorageService, AcessoRepository acessoRepository, UnicidadeService unicidadeService) {
         this.funcionarioRepository = funcionarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.fileStorageService = fileStorageService;
         this.acessoRepository = acessoRepository;
+        this.unicidadeService = unicidadeService;
     }
 
     public List<Funcionario> listarTodos() {
@@ -48,11 +50,9 @@ public class FuncionarioService {
 
     @Transactional
     public FuncionarioResponseDTO cadastrar(FuncionarioRequestDTO dto) {
-        if (funcionarioRepository.existsByEmail(dto.getEmail())) {
-            throw new FuncionarioAlreadyExistsException("Este e-mail já está em uso.");
-        }
+        unicidadeService.validarEmailUnico(dto.getEmail(), null);
 
-        if(funcionarioRepository.existsByCpf(dto.getCpf())){
+        if (funcionarioRepository.existsByCpf(dto.getCpf())) {
             throw new FuncionarioAlreadyExistsException("Este cpf já está em uso.");
         }
 
@@ -68,21 +68,23 @@ public class FuncionarioService {
         return UsuarioMapper.toResponseDTO(salvo);
     }
 
-    public Funcionario atualizar(Long id, Funcionario funcionario) {
-        return funcionarioRepository.findById(id).map(f -> {
-            f.setNome(funcionario.getNome());
-            f.setEmail(funcionario.getEmail());
-            String novaSenha = funcionario.getSenha();
-            if (novaSenha != null && !novaSenha.isBlank()){
-                f.setSenha(passwordEncoder.encode(novaSenha));
-            }
-            f.setUrlFoto(funcionario.getUrlFoto());
-            f.setCpf(funcionario.getCpf());
-            f.setEmpresa(funcionario.getEmpresa());
-            f.setAcesso(funcionario.getAcesso());
-            f.setConsulta(funcionario.getConsulta());
-            return funcionarioRepository.save(f);
-        }).orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
+    @Transactional
+    public Funcionario atualizar(Long id, FuncionarioAtualizarRequestDTO dto) {
+        Funcionario funcionario = funcionarioRepository.findById(id)
+                .orElseThrow(() -> new FuncionarioNotFoundException("Funcionário não encontrado"));
+
+        unicidadeService.validarEmailUnico(dto.getEmail(), id);
+
+        if (dto.getCpf() != null && !dto.getCpf().equals(funcionario.getCpf()) && funcionarioRepository.existsByCpf(dto.getCpf())) {
+            throw new IllegalArgumentException("CPF já está em uso por outro funcionário.");
+        }
+
+        funcionario.setNome(dto.getNome());
+        funcionario.setEmail(dto.getEmail());
+        funcionario.setCpf(dto.getCpf());
+        funcionario.setUrlFoto(dto.getUrlFoto());
+
+        return funcionarioRepository.save(funcionario);
     }
 
     public void deletar(Long id) {

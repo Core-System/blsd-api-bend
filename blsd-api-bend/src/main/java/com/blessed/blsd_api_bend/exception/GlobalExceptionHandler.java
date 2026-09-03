@@ -1,6 +1,7 @@
 package com.blessed.blsd_api_bend.exception;
 
 import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
+import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,6 +16,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClienteAlreadyExistsException.class)
     public ResponseEntity<Object> handleClienteAlreadyExists(ClienteAlreadyExistsException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Conflict");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(FuncionarioAlreadyExistsException.class)
+    public ResponseEntity<Object> handleFuncionarioAlreadyExists(FuncionarioAlreadyExistsException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.CONFLICT.value());

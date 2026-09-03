@@ -29,16 +29,18 @@ public class ClienteService {
     private final PasswordEncoder passwordEncoder;
     private final ConsultaRepository consultaRepository;
     private final FileStorageService fileStorageService;
+    private final UnicidadeService unicidadeService;
 
     public ClienteService(ClienteRepository clienteRepository,
                           AcessoRepository acessoRepository,
                           PasswordEncoder passwordEncoder,
-                          ConsultaRepository consultaRepository, FileStorageService fileStorageService) {
+                          ConsultaRepository consultaRepository, FileStorageService fileStorageService, UnicidadeService unicidadeService) {
         this.clienteRepository = clienteRepository;
         this.acessoRepository = acessoRepository;
         this.passwordEncoder = passwordEncoder;
         this.consultaRepository = consultaRepository;
         this.fileStorageService = fileStorageService;
+        this.unicidadeService = unicidadeService;
     }
 
     @Transactional(readOnly = true)
@@ -60,11 +62,9 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO cadastrar(ClienteRequestDTO dto) {
-        if (clienteRepository.existsByEmail(dto.getEmail())) {
-            throw new ClienteAlreadyExistsException("Este e-mail já está em uso.");
-        }
+        unicidadeService.validarEmailUnico(dto.getEmail(), null);
 
-        if(clienteRepository.existsByTelefone(dto.getTelefone())){
+        if (clienteRepository.existsByTelefone(dto.getTelefone())) {
             throw new ClienteAlreadyExistsException("Este telefone já está em uso.");
         }
 
@@ -84,11 +84,7 @@ public class ClienteService {
     public ClienteResponseDTO atualizar(Long id, ClienteAtualizarRequestDTO dto) {
         Cliente cliente = buscarEntidadePorId(id);
 
-        if (!cliente.getEmail().equalsIgnoreCase(dto.getEmail())) {
-            if (clienteRepository.existsByEmail(dto.getEmail())) {
-                throw new ClienteAlreadyExistsException("Este e-mail já está sendo utilizado por outra conta.");
-            }
-        }
+        unicidadeService.validarEmailUnico(dto.getEmail(), id);
 
         cliente.setNome(dto.getNome());
         cliente.setEmail(dto.getEmail());

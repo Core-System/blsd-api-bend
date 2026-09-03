@@ -61,20 +61,11 @@ public class FuncionarioController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<FuncionarioResponseDTO> atualizarFuncionario(@PathVariable Long id,
-                                                                       @Valid @RequestBody FuncionarioAtualizarRequestDTO funcionarioDTO) {
-        Funcionario funcionarioExistente = funcionarioService.listarPorId(id);
+    public ResponseEntity<FuncionarioResponseDTO> atualizarFuncionario(
+            @PathVariable Long id,
+            @Valid @RequestBody FuncionarioAtualizarRequestDTO funcionarioDTO) {
 
-        funcionarioExistente.setNome(funcionarioDTO.getNome());
-        funcionarioExistente.setEmail(funcionarioDTO.getEmail());
-        if (funcionarioDTO.getSenha() != null && !funcionarioDTO.getSenha().isBlank()) {
-            funcionarioExistente.setSenha(funcionarioDTO.getSenha());
-        }
-        funcionarioExistente.setCpf(funcionarioDTO.getCpf());
-        funcionarioExistente.setUrlFoto(funcionarioDTO.getUrlFoto());
-        funcionarioExistente.setEmpresa(funcionarioDTO.getEmpresa());
-
-        Funcionario atualizado = funcionarioService.atualizar(id, funcionarioExistente);
+        Funcionario atualizado = funcionarioService.atualizar(id, funcionarioDTO);
         return ResponseEntity.ok(UsuarioMapper.toResponseDTO(atualizado));
     }
 
