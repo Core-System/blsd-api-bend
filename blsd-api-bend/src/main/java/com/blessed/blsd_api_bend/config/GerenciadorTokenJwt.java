@@ -1,5 +1,6 @@
 package com.blessed.blsd_api_bend.config;
 
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioDetalheDTO;
 import com.blessed.blsd_api_bend.model.entity.Acesso;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,27 +30,49 @@ public class GerenciadorTokenJwt {
         return getClaimForToken(token, Claims::getSubject);
     }
 
+    public String getRoleFromToken(String token) {
+        return getClaimForToken(token, claims -> claims.get("role", String.class));
+    }
+
+    public Long getIdFromToken(String token) {
+        return getClaimForToken(token, claims -> {
+            Number id = claims.get("id", Number.class);
+            return id != null ? id.longValue() : null;
+        });
+    }
+
     public Date getExpirationDateFromToken(String token) {
         return getClaimForToken(token, Claims::getExpiration);
     }
 
     public String generateToken(final Authentication authentication) {
-        // Para verificacoes de permissoes;
         final String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .map(role -> role.replace("ROLE_", ""))
                 .collect(Collectors.joining(","));
 
-        return Jwts.builder().setSubject(authentication.getName())
-                .signWith(parseSecret()).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000)).compact();
+        Long usuarioId = null;
+        if (authentication.getPrincipal() instanceof UsuarioDetalheDTO) {
+            usuarioId = ((UsuarioDetalheDTO) authentication.getPrincipal()).getId();
+        }
+
+        return Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim("role", authorities)
+                .claim("id", usuarioId)
+                .signWith(parseSecret())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000))
+                .compact();
     }
 
-    public String generateToken(String username, Acesso acesso) {
-        final String role = acesso.getNome().toString();
+    public String generateToken(String username, Acesso acesso, Long usuarioId) {
+        final String role = acesso.getNome().toString().replace("ROLE_", "");
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
+                .claim("id", usuarioId)
                 .signWith(parseSecret())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000))
@@ -61,6 +83,7 @@ public class GerenciadorTokenJwt {
         Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
+
     protected Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));

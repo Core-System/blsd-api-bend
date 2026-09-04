@@ -1,12 +1,23 @@
 package com.blessed.blsd_api_bend.controller;
 
+import com.blessed.blsd_api_bend.dto.cliente.ClienteRequestDTO;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioAtualizarRequestDTO;
 import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
+import com.blessed.blsd_api_bend.model.entity.Acesso;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
+import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
+import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.service.FuncionarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -14,58 +25,62 @@ import java.util.List;
 public class FuncionarioController {
 
     private final FuncionarioService funcionarioService;
+    private final AcessoRepository acessoRepository;
 
-    public FuncionarioController(FuncionarioService funcionarioService) {
+    public FuncionarioController(FuncionarioService funcionarioService, AcessoRepository acessoRepository) {
         this.funcionarioService = funcionarioService;
+        this.acessoRepository = acessoRepository;
     }
 
     @GetMapping
-    public ResponseEntity<List<Funcionario>> listarFuncionarios() {
-        List<Funcionario> funcionarios = funcionarioService.listarTodos();
+    public ResponseEntity<List<FuncionarioResponseDTO>> listarFuncionarios() {
+        List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos()
+                .stream()
+                .map(UsuarioMapper::toResponseDTO)
+                .toList();
         return ResponseEntity.ok(funcionarios);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Funcionario> listarPorId(@PathVariable Long id) {
+    public ResponseEntity<FuncionarioResponseDTO> listarPorId(@PathVariable Long id) {
         Funcionario funcionario = funcionarioService.listarPorId(id);
-        return ResponseEntity.ok(funcionario);
+        return ResponseEntity.ok(UsuarioMapper.toResponseDTO(funcionario));
     }
 
     @PostMapping
-    public ResponseEntity<Funcionario> criarFuncionario(@Valid @RequestBody FuncionarioRequestDTO funcionarioDTO) {
-        Funcionario funcionarioCriado = new Funcionario();
+    public ResponseEntity<FuncionarioResponseDTO> criarFuncionario(@Valid @RequestBody FuncionarioRequestDTO funcionarioRequestDTO) {
+        FuncionarioResponseDTO salvo = funcionarioService.cadastrar(funcionarioRequestDTO);
 
-        funcionarioCriado.setNome(funcionarioDTO.getNome());
-        funcionarioCriado.setEmail(funcionarioDTO.getEmail());
-        funcionarioCriado.setSenha(funcionarioDTO.getSenha());
-        funcionarioCriado.setCpf(funcionarioDTO.getCpf());
-        funcionarioCriado.setUrlFoto(funcionarioDTO.getUrlFoto());
-        funcionarioCriado.setEmpresa(funcionarioDTO.getEmpresa());
-        funcionarioCriado.setAcesso(funcionarioDTO.getAcesso());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(salvo.getId())
+                .toUri();
 
-        return ResponseEntity.status(201).body(funcionarioService.cadastrar(funcionarioCriado));
+        return ResponseEntity.created(location).body(salvo);
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<Funcionario> atualizarFuncionario(@PathVariable Long id,
-                                                            @Valid @RequestBody FuncionarioRequestDTO funcionarioDTO) {
-        Funcionario funcionarioExistente = funcionarioService.listarPorId(id);
+    public ResponseEntity<FuncionarioResponseDTO> atualizarFuncionario(
+            @PathVariable Long id,
+            @Valid @RequestBody FuncionarioAtualizarRequestDTO funcionarioDTO) {
 
-        funcionarioExistente.setNome(funcionarioDTO.getNome());
-        funcionarioExistente.setEmail(funcionarioDTO.getEmail());
-        funcionarioExistente.setSenha(funcionarioDTO.getSenha());
-        funcionarioExistente.setCpf(funcionarioDTO.getCpf());
-        funcionarioExistente.setUrlFoto(funcionarioDTO.getUrlFoto());
-        funcionarioExistente.setEmpresa(funcionarioDTO.getEmpresa());
-        funcionarioExistente.setAcesso(funcionarioDTO.getAcesso());
-
-        Funcionario atualizado = funcionarioService.atualizar(id, funcionarioExistente);
-        return ResponseEntity.ok(atualizado);
+        Funcionario atualizado = funcionarioService.atualizar(id, funcionarioDTO);
+        return ResponseEntity.ok(UsuarioMapper.toResponseDTO(atualizado));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarFuncionario(@PathVariable Long id) {
         funcionarioService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/foto")
+    public ResponseEntity<Void> atualizarFoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+
+        funcionarioService.atualizarFotoPerfil(id, file);
         return ResponseEntity.noContent().build();
     }
 }

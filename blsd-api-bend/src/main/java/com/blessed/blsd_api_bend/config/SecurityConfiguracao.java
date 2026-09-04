@@ -1,8 +1,10 @@
 package com.blessed.blsd_api_bend.config;
 
-import com.blessed.blsd_api_bend.service    .AutenticacaoService;
+import com.blessed.blsd_api_bend.service.AutenticacaoService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -31,7 +33,10 @@ public class SecurityConfiguracao {
     private final AutenticacaoEntryPoint autenticacaoJwtEntryPoint;
     private final AutenticacaoFilter autenticacaoFilter;
 
-    String[] ROTAS_SWAGGER_E_DOCUMENTACAO = {
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
+    private static final String[] ROTAS_SWAGGER_E_DOCUMENTACAO = {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/swagger-resources/**",
@@ -42,30 +47,13 @@ public class SecurityConfiguracao {
             "/actuator/*"
     };
 
-    String[] ROTAS_PUBLICAS = {
+    private static final String[] ROTAS_PUBLICAS_GERAIS = {
             "/api/public/**",
-            "/api/public/authenticate",
             "/usuarios/login/**",
             "/error/**",
             "/h2-console/**",
             "/usuarios/link-agendamento/**",
-            "/funcionario/**"
-    };
-
-    String[] ROTAS_CLIENTES = {
-            "/cliente",
-            "/cliente/**"
-    };
-
-    String[] ROTAS_FUNCIONARIOS_E_GESTORES = {
-            "/produto",
-            "/produto/**",
-            "/consulta/**"
-    };
-
-    String[] ROTAS_EXCLUSIVAS_GESTORES = {
-            "/movimentacao",
-            "/movimentacao/**"
+            "/uploads/**"
     };
 
     public SecurityConfiguracao(AutenticacaoService autenticacaoService,
@@ -86,13 +74,17 @@ public class SecurityConfiguracao {
                         )
                 )
                 .cors(Customizer.withDefaults())
-                .csrf(CsrfConfigurer<HttpSecurity>::disable)
+                .csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(ROTAS_PUBLICAS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/cliente").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/avaliacao").permitAll()
+
+                        .requestMatchers(ROTAS_PUBLICAS_GERAIS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
-                        .requestMatchers(ROTAS_CLIENTES).permitAll()
-                        .requestMatchers(ROTAS_FUNCIONARIOS_E_GESTORES).permitAll()
-                        .requestMatchers(ROTAS_EXCLUSIVAS_GESTORES).permitAll()
+
+                        .requestMatchers("/produto/**", "/consulta/**", "/funcionario/**").hasAnyAuthority("FUNCIONARIO", "GESTOR")
+                        .requestMatchers("/movimentacao/**").hasAuthority("GESTOR")
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(autenticacaoJwtEntryPoint))
@@ -116,8 +108,8 @@ public class SecurityConfiguracao {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuracao = new CorsConfiguration();
-        configuracao.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuracao.setAllowedOrigins(allowedOrigins);
+        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuracao.setAllowedHeaders(List.of("*"));
         configuracao.setAllowCredentials(true);
 

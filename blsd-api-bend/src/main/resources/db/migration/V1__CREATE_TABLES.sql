@@ -39,7 +39,7 @@ CREATE TABLE cliente
     url_foto     VARCHAR(255),
     data_criacao DATETIME,
     data_nasc    DATE,
-    telefone     VARCHAR(11),
+    telefone     VARCHAR(11) UNIQUE,
     endereco_id  BIGINT,
     acesso_id    BIGINT,
     FOREIGN KEY (endereco_id) REFERENCES endereco (id),

@@ -25,16 +25,12 @@ public class UsuarioAtualizarRequestDTO {
     @Email
     private String email;
 
-    @Schema(description = "Senha do usuário (mínimo 8 caracteres)", example = "senhaSegura123")
+//    @Schema(description = "Senha do usuário (mínimo 8 caracteres)", example = "senhaSegura123")
 //    @NotBlank
-    @Size(min = 8)
-    private String senha;
+//    @Size(min = 8)
+//    private String senha;
 
     @Schema(description = "URL da foto de perfil", example = "https://meuservidor.com/fotos/maria.jpg")
 //    @NotBlank
     private String urlFoto;
-
-
-    @NotNull
-    private Acesso acesso;
 }

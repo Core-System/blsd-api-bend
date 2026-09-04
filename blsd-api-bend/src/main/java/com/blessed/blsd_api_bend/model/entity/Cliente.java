@@ -2,34 +2,40 @@ package com.blessed.blsd_api_bend.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class Cliente extends Usuario{
+@Getter
+@Setter
+public class Cliente extends Usuario {
 
     @Column(name = "data_nasc")
     private LocalDate dataNasc;
 
     private String telefone;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-        @Column(name = "token_agendamento")
-        private String tokenAgendamento;
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.REMOVE)
+    private List<Consulta> consultas = new ArrayList<>();
 
-        @Column(name = "expiracao_token_agendamento")
-        private LocalDateTime expiracaoTokenAgendamento;
+    @Column(name = "token_agendamento")
+    private String tokenAgendamento;
+
+    @Column(name = "expiracao_token_agendamento")
+    private LocalDateTime expiracaoTokenAgendamento;
 
     public void gerarToken() {
         this.tokenAgendamento = UUID.randomUUID().toString();
@@ -40,6 +46,4 @@ public class Cliente extends Usuario{
         this.tokenAgendamento = null;
         this.expiracaoTokenAgendamento = null;
     }
-
-
 }
