@@ -53,7 +53,7 @@ public class FuncionarioService {
         unicidadeService.validarEmailUnico(dto.getEmail(), null);
 
         if (funcionarioRepository.existsByCpf(dto.getCpf())) {
-            throw new FuncionarioAlreadyExistsException("Este cpf já está em uso.");
+            throw new FuncionarioAlreadyExistsException("Este CPF já está em uso.");
         }
 
         Funcionario funcionario = UsuarioMapper.of(dto);
@@ -76,7 +76,7 @@ public class FuncionarioService {
         unicidadeService.validarEmailUnico(dto.getEmail(), id);
 
         if (dto.getCpf() != null && !dto.getCpf().equals(funcionario.getCpf()) && funcionarioRepository.existsByCpf(dto.getCpf())) {
-            throw new IllegalArgumentException("CPF já está em uso por outro funcionário.");
+            throw new FuncionarioAlreadyExistsException("CPF já está em uso por outro funcionário.");
         }
 
         funcionario.setNome(dto.getNome());
