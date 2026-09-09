@@ -30,17 +30,19 @@ public class ClienteService {
     private final ConsultaRepository consultaRepository;
     private final FileStorageService fileStorageService;
     private final UnicidadeService unicidadeService;
+    private final RecaptchaService recaptchaService;
 
     public ClienteService(ClienteRepository clienteRepository,
                           AcessoRepository acessoRepository,
                           PasswordEncoder passwordEncoder,
-                          ConsultaRepository consultaRepository, FileStorageService fileStorageService, UnicidadeService unicidadeService) {
+                          ConsultaRepository consultaRepository, FileStorageService fileStorageService, UnicidadeService unicidadeService, RecaptchaService recaptchaService) {
         this.clienteRepository = clienteRepository;
         this.acessoRepository = acessoRepository;
         this.passwordEncoder = passwordEncoder;
         this.consultaRepository = consultaRepository;
         this.fileStorageService = fileStorageService;
         this.unicidadeService = unicidadeService;
+        this.recaptchaService = recaptchaService;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +64,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO cadastrar(ClienteRequestDTO dto) {
+        recaptchaService.validar(dto.getRecaptchaToken(), "cadastro");
         unicidadeService.validarEmailUnico(dto.getEmail(), null);
 
         if (clienteRepository.existsByTelefone(dto.getTelefone())) {

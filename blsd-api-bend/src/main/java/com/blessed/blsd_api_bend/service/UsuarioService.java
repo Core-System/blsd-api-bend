@@ -25,18 +25,21 @@ public class UsuarioService {
     private final GerenciadorTokenJwt gerenciadorTokenJwt;
     private final ClienteRepository clienteRepository;
     private final FuncionarioRepository funcionarioRepository;
+    private final RecaptchaService recaptchaService;
 
     public UsuarioService(AuthenticationManager authenticationManager,
                           GerenciadorTokenJwt gerenciadorTokenJwt,
                           ClienteRepository clienteRepository,
-                          FuncionarioRepository funcionarioRepository) {
+                          FuncionarioRepository funcionarioRepository, RecaptchaService recaptchaService) {
         this.authenticationManager = authenticationManager;
         this.gerenciadorTokenJwt = gerenciadorTokenJwt;
         this.clienteRepository = clienteRepository;
         this.funcionarioRepository = funcionarioRepository;
+        this.recaptchaService = recaptchaService;
     }
 
     public UsuarioTokenDTO autenticar(LoginRequestDTO loginDto) {
+        recaptchaService.validar(loginDto.getRecaptchaToken(), "login");
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getSenha());
 

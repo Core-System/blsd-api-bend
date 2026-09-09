@@ -24,4 +24,8 @@ public class LoginRequestDTO {
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
     private String senha;
 
+    @Schema(description = "Token do recaptcha v3 gerado pelo frontend.")
+    @NotBlank(message="Verificação de segurança ausente.")
+    private String recaptchaToken;
+
 }

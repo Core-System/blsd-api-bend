@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.exception;
 
 import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
+import com.blessed.blsd_api_bend.exception.recaptcha.RecaptchaInvalidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,16 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(RecaptchaInvalidException.class)
+    public ResponseEntity<Object> handleRecaptchaInvalido(RecaptchaInvalidException ex){
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Forbidden");
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(FuncionarioAlreadyExistsException.class)

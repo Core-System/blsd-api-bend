@@ -34,4 +34,7 @@ public class UsuarioRequestDTO {
 //    @NotBlank
     private String urlFoto;
 
+    @Schema(description = "Token do recaptcha v3 (obrigatório só no cadastro de clientes.)")
+    private String recaptchaToken;
+
 }
