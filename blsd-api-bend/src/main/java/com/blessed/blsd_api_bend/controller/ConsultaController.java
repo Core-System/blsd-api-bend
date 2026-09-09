@@ -1,11 +1,13 @@
 package com.blessed.blsd_api_bend.controller;
 
+import com.blessed.blsd_api_bend.dto.agendamento.AgendamentoRequestDTO;
 import com.blessed.blsd_api_bend.dto.consulta.*;
 import com.blessed.blsd_api_bend.service.ConsultaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/consulta")
 public class ConsultaController {
@@ -14,6 +16,12 @@ public class ConsultaController {
 
     public ConsultaController(ConsultaService consultaService) {
         this.consultaService = consultaService;
+    }
+
+    @PostMapping("/agendar")
+    public ResponseEntity<ConsultaResponseDTO> agendar(@RequestBody AgendamentoRequestDTO request) {
+        ConsultaResponseDTO novaConsulta = consultaService.criarAgendamento(request);
+        return ResponseEntity.ok(novaConsulta);
     }
 
     @GetMapping("/cliente/{clienteId}")

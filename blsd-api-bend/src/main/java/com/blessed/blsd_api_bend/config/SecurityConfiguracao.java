@@ -53,7 +53,8 @@ public class SecurityConfiguracao {
             "/error/**",
             "/h2-console/**",
             "/usuarios/link-agendamento/**",
-            "/uploads/**"
+            "/uploads/**",
+            "/consulta/**"
     };
 
     public SecurityConfiguracao(AutenticacaoService autenticacaoService,
@@ -82,7 +83,7 @@ public class SecurityConfiguracao {
                         .requestMatchers(ROTAS_PUBLICAS_GERAIS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
 
-                        .requestMatchers("/produto/**", "/consulta/**", "/funcionario/**").hasAnyAuthority("FUNCIONARIO", "GESTOR")
+                        .requestMatchers("/produto/**", "/funcionario/**").hasAnyAuthority("FUNCIONARIO", "GESTOR")
                         .requestMatchers("/movimentacao/**").hasAuthority("GESTOR")
 
                         .anyRequest().authenticated()

@@ -1,6 +1,6 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.config.NotificacaoCliente;
+import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestClientException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -59,4 +59,11 @@ public class Consulta {
 
     @Enumerated(EnumType.STRING)
     private StatusConsulta statusConsulta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_funcionario")
+    private Funcionario funcionario;
+
+    @Column(name = "cal_booking_uid")
+    private String calBookingUid;
 }

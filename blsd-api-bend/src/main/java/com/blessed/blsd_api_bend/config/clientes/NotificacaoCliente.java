@@ -1,4 +1,4 @@
-package com.blessed.blsd_api_bend.config;
+package com.blessed.blsd_api_bend.config.clientes;
 
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
