@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,36 +29,45 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
 
     private final AutenticacaoService autenticacaoService;
     private final GerenciadorTokenJwt jwtTokenManager;
+    private final HandlerExceptionResolver exceptionResolver;
 
-    public AutenticacaoFilter(AutenticacaoService autenticacaoService, GerenciadorTokenJwt jwtTokenManager) {
+    public AutenticacaoFilter(AutenticacaoService autenticacaoService,
+                              GerenciadorTokenJwt jwtTokenManager,
+                              @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         this.autenticacaoService = autenticacaoService;
         this.jwtTokenManager = jwtTokenManager;
+        this.exceptionResolver = exceptionResolver;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String username = null;
-        String jwtToken = null;
+        try {
+            String username = null;
+            String jwtToken = null;
 
-        String requestTokenHeader = request.getHeader("Authorization");
+            String requestTokenHeader = request.getHeader("Authorization");
 
-        if (Objects.nonNull(requestTokenHeader) && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
-            try {
-                username = jwtTokenManager.getUsernameFromToken(jwtToken);
-            } catch (ExpiredJwtException exception) {
-                LOGGER.info("[FALHA AUTENTICACAO] - Token expirado, usuario: {} - {}",
-                        exception.getClaims().getSubject(), exception.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+            if (Objects.nonNull(requestTokenHeader) && requestTokenHeader.startsWith("Bearer ")) {
+                jwtToken = requestTokenHeader.substring(7);
+                try {
+                    username = jwtTokenManager.getUsernameFromToken(jwtToken);
+                } catch (ExpiredJwtException exception) {
+                    LOGGER.info("[FALHA AUTENTICACAO] - Token expirado, usuario: {} - {}",
+                            exception.getClaims().getSubject(), exception.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
             }
-        }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            authenticateInContext(request, jwtToken, username);
-        }
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                authenticateInContext(request, jwtToken, username);
+            }
 
-        filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response);
+
+        } catch (Exception ex) {
+            exceptionResolver.resolveException(request, response, null, ex);
+        }
     }
 
     private void authenticateInContext(HttpServletRequest request, String jwtToken, String username) {

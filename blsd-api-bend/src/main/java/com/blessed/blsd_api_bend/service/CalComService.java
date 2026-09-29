@@ -3,6 +3,7 @@ package com.blessed.blsd_api_bend.service;
 import com.blessed.blsd_api_bend.config.clientes.CalComCliente;
 import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
 import com.blessed.blsd_api_bend.dto.agendamento.*;
+import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelException;
 import com.blessed.blsd_api_bend.model.entity.Consulta;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
@@ -55,14 +56,39 @@ public class CalComService {
 
             throw new RuntimeException("A resposta da API do Cal.com não retornou o UID da reserva.");
 
+        } catch (FeignException.Conflict e) {
+            System.err.println("CONFLITO NO CAL.COM (Horário já reservado): " + e.contentUTF8());
+            throw new HorarioIndisponivelException("O horário selecionado já está reservado.");
+
         } catch (FeignException.BadRequest e) {
-            System.err.println("ERRO DO CAL.COM: " + e.contentUTF8());
+            System.err.println("ERRO BAD REQUEST NO CAL.COM: " + e.contentUTF8());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Este horário já está reservado ou os dados enviados são inválidos.");
+                    "Os dados enviados para o agendamento são inválidos.");
+
         } catch (FeignException e) {
             System.err.println("ERRO GERAL DO FEIGN / CAL.COM: " + e.status() + " - " + e.contentUTF8());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Serviço de agendamento externo indisponível no momento.");
+        }
+    }
+
+    public ReservaDataDTO buscarDetalhesReserva(String uid) {
+        try {
+            ResponseEntity<CalComReservaDetalheDTO> response = calComClient.buscarReservaPorUid(
+                    "Bearer " + apiKey,
+                    apiVersion,
+                    uid
+            );
+
+            if (response.getBody() != null && response.getBody().data() != null) {
+                return response.getBody().data();
+            }
+            throw new RuntimeException("Reserva não encontrada no Cal.com");
+
+        } catch (FeignException e) {
+            System.err.println("Erro ao buscar detalhes no CAL.COM: " + e.contentUTF8());
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Não foi possível consultar os detalhes do agendamento no Cal.com.");
         }
     }
 //

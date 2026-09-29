@@ -42,7 +42,7 @@ public class ServicoController {
         servicoCriado.setPreco(servicoDTO.getPreco());
         servicoCriado.setAvaliacao(servicoDTO.getAvaliacao());
         servicoCriado.setDuracao(servicoDTO.getDuracao());
-        servicoCriado.setDescricacao(servicoDTO.getDescricacao());
+        servicoCriado.setDescricao(servicoDTO.getDescricacao());
         servicoCriado.setProdutos(servicoDTO.getProduto());
 
 

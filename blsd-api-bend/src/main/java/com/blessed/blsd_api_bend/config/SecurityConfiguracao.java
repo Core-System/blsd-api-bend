@@ -54,7 +54,8 @@ public class SecurityConfiguracao {
             "/h2-console/**",
             "/usuarios/link-agendamento/**",
             "/uploads/**",
-            "/consulta/**"
+            "/consulta/**",
+            "/servico/**"
     };
 
     public SecurityConfiguracao(AutenticacaoService autenticacaoService,

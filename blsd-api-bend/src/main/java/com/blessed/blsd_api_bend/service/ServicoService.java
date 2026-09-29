@@ -47,7 +47,7 @@ public class ServicoService implements ICrudService<Servico> {
                     p.setNome(p.getNome());
                     p.setPreco(p.getPreco());
                     p.setAvaliacao(p.getAvaliacao());
-                    p.setDescricacao(p.getDescricacao());
+                    p.setDescricao(p.getDescricao());
                     p.setDuracao(p.getDuracao());
                     p.setProdutos(p.getProdutos());
                     return servicoRepository.save(p);

@@ -4,6 +4,7 @@ import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
 import com.blessed.blsd_api_bend.dto.agendamento.AgendamentoRequestDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
+import com.blessed.blsd_api_bend.dto.agendamento.ReservaDataDTO;
 import com.blessed.blsd_api_bend.dto.consulta.*;
 import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelException;
 import com.blessed.blsd_api_bend.model.entity.*;
@@ -167,5 +168,16 @@ public class ConsultaService {
                         : List.of(),
                 avaliacaoDTO, c.getCalBookingUid()
         );
+    }
+
+    public ReservaDataDTO buscarDetalhesExternos(Long consultaId) {
+        Consulta consulta = consultaRepository.findById(consultaId)
+                .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
+
+        if (consulta.getCalBookingUid() == null) {
+            throw new RuntimeException("Esta consulta não possui vinculo com o Cal.com");
+        }
+
+        return calComService.buscarDetalhesReserva(consulta.getCalBookingUid());
     }
 }

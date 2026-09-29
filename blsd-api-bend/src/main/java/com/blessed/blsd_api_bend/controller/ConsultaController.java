@@ -1,6 +1,7 @@
 package com.blessed.blsd_api_bend.controller;
 
 import com.blessed.blsd_api_bend.dto.agendamento.AgendamentoRequestDTO;
+import com.blessed.blsd_api_bend.dto.agendamento.ReservaDataDTO;
 import com.blessed.blsd_api_bend.dto.consulta.*;
 import com.blessed.blsd_api_bend.service.ConsultaService;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,10 @@ public class ConsultaController {
             @PathVariable Long consultaId,
             @RequestBody AvaliacaoRequestDTO dto) {
         return ResponseEntity.ok(consultaService.avaliar(consultaId, dto));
+    }
+
+    @GetMapping("/{consultaId}/detalhes-externos")
+    public ResponseEntity<ReservaDataDTO> buscarDetalhesCalCom(@PathVariable Long consultaId) {
+        return ResponseEntity.ok(consultaService.buscarDetalhesExternos(consultaId));
     }
 }
