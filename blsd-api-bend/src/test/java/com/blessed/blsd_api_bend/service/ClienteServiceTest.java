@@ -82,7 +82,7 @@ class ClienteServiceTest {
             when(clienteRepository.findById(1L)).thenReturn(Optional.empty());
 
             assertThrows(ClienteNotFoundException.class, () -> {
-                clienteService.listarPorId(1L);
+                clienteService.listarTodos(1L);
             });
         }
 
