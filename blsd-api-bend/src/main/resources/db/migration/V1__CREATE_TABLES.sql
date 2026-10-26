@@ -75,7 +75,9 @@ CREATE TABLE servico
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
     nome         VARCHAR(45),
     descricao  VARCHAR(255),
+    categoria VARCHAR(255),
     preco        DECIMAL(10, 2),
+    img_url VARCHAR(255),
     duracao      BIGINT,
     avaliacao_id BIGINT,
     FOREIGN KEY (avaliacao_id) REFERENCES avaliacao (id)
