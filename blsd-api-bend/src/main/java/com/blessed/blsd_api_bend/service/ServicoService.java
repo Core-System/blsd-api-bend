@@ -5,6 +5,8 @@ import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.repository.ServicoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,11 @@ public class ServicoService implements ICrudService<Servico> {
     @Transactional(readOnly = true)
     public List<Servico> listarTodos() {
         return servicoRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Servico> listarTodos(Pageable pageable) {
+        return servicoRepository.findAll(pageable);
     }
 
     @Override

@@ -22,6 +22,8 @@ public class Servico {
     private String nome;
     private String descricao;
     private BigDecimal preco;
+    private String categoria;
+    private String imgUrl;
     private Integer duracao;
 
     @ManyToOne

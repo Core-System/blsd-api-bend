@@ -5,10 +5,12 @@ import com.blessed.blsd_api_bend.dto.servico.ServicoRequestDTO;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/servico")
@@ -23,9 +25,9 @@ public class ServicoController {
 
 
     @GetMapping
-    public ResponseEntity<List<Servico>> listarServicos() {
-        List<Servico> servicos = servicoService.listarTodos();
-        return ResponseEntity.ok(servicos);
+    public ResponseEntity<Page<Servico>> listarServicos(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(servicoService.listarTodos(pageable));
     }
 
     @GetMapping("/{id}")
