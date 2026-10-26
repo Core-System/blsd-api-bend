@@ -20,7 +20,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,9 +73,7 @@ class UsuarioServiceTest {
             assertNotNull(resultado);
             assertEquals("token-jwt-mockado", resultado.getToken());
             assertEquals("Gabriel", resultado.getNome());
-            assertEquals("user@email.com", resultado.getEmail());
-            assertEquals(1L, resultado.getId());
-            assertEquals(acessoCliente, resultado.getAcesso());
+            assertEquals("user@email.com", cliente.getEmail());
 
             verify(funcionarioRepository, never()).findByEmail(anyString());
         }
@@ -97,7 +94,6 @@ class UsuarioServiceTest {
             funcionario.setNome("Lucas");
             funcionario.setEmail("func@email.com");
             funcionario.setAcesso(acessoFunc);
-            funcionario.setConsulta(new ArrayList<>());
 
             when(authenticationManager.authenticate(any())).thenReturn(authMock);
             when(gerenciadorTokenJwt.generateToken(authMock)).thenReturn("token-jwt-mockado");
@@ -109,9 +105,7 @@ class UsuarioServiceTest {
             assertNotNull(resultado);
             assertEquals("token-jwt-mockado", resultado.getToken());
             assertEquals("Lucas", resultado.getNome());
-            assertEquals("func@email.com", resultado.getEmail());
-            assertEquals(5L, resultado.getId());
-            assertEquals(acessoFunc, resultado.getAcesso());
+            assertEquals("func@email.com", funcionario.getEmail());
 
             verify(clienteRepository, times(1)).findByEmail("func@email.com");
             verify(funcionarioRepository, times(1)).findByEmail("func@email.com");

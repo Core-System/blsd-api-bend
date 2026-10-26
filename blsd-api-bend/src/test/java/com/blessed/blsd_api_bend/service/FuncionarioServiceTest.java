@@ -1,23 +1,30 @@
 package com.blessed.blsd_api_bend.service;
 
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioAtualizarRequestDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioRequestDTO;
+import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
-import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.model.entity.Acesso;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
+import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
+import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FuncionarioServiceTest {
@@ -25,163 +32,83 @@ class FuncionarioServiceTest {
     @Mock
     private FuncionarioRepository funcionarioRepository;
 
+    @Mock
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Mock
+    private FileStorageService fileStorageService;
+
+    @Mock
+    private AcessoRepository acessoRepository;
+
+    @Mock
+    private UnicidadeService unicidadeService;
+
     @InjectMocks
     private FuncionarioService funcionarioService;
 
-    @Nested
-    @DisplayName("Testes do Fluxo de Cadastro")
-    class CadastrarFuncionarioTest {
+    @Test
+    void deveCadastrarFuncionarioComDadosTratados() {
+        FuncionarioRequestDTO request = new FuncionarioRequestDTO();
+        request.setNome("Julia");
+        request.setEmail("julia@empresa.com");
+        request.setSenha("senha");
+        request.setCpf("529.982.247-25");
 
-        @Test
-        @DisplayName("Deve lançar exceção apenas se e-mail E cpf já existirem simultaneamente")
-        void cadastrarFuncionarioDuplicado() {
-            Funcionario func = new Funcionario();
-            func.setEmail("func@empresa.com");
-            func.setCpf("12345678900");
-            func.setConsulta(new ArrayList<>()); // Proteção contra a propriedade List legada
+        Acesso acesso = new Acesso();
+        acesso.setNome(TiposAcessos.FUNCIONARIO);
+        when(funcionarioRepository.existsByCpf(request.getCpf())).thenReturn(false);
+        when(passwordEncoder.encode("senha")).thenReturn("senha-hash");
+        when(acessoRepository.findByNome(TiposAcessos.FUNCIONARIO)).thenReturn(Optional.of(acesso));
+        when(funcionarioRepository.save(any(Funcionario.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(funcionarioRepository.existsByEmail(func.getEmail())).thenReturn(true);
-            when(funcionarioRepository.existsByCpf(func.getCpf())).thenReturn(true);
+        FuncionarioResponseDTO resultado = funcionarioService.cadastrar(request);
 
-            assertThrows(FuncionarioAlreadyExistsException.class, () -> {
-                funcionarioService.cadastrar(func);
-            });
-
-            verify(funcionarioRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Deve cadastrar funcionário com sucesso se o e-mail existir mas o CPF for inédito")
-        void deveCadastrarSeCpfForInedito() {
-            Funcionario func = new Funcionario();
-            func.setEmail("func@empresa.com");
-            func.setCpf("441.652.820-25");
-            func.setConsulta(new ArrayList<>());
-
-            // Como a service usa '&&', se o CPF retornar false, a condição falha e o fluxo salva o objeto
-            when(funcionarioRepository.existsByEmail(func.getEmail())).thenReturn(true);
-            when(funcionarioRepository.existsByCpf(func.getCpf())).thenReturn(false);
-            when(funcionarioRepository.save(func)).thenReturn(func);
-
-            Funcionario resultado = funcionarioService.cadastrar(func);
-
-            assertNotNull(resultado);
-            verify(funcionarioRepository, times(1)).save(func);
-        }
-
-        @Test
-        @DisplayName("Deve cadastrar funcionário com sucesso se ambos e-mail e CPF forem inéditos")
-        void deveCadastrarComSucessoAbsoluto() {
-            Funcionario func = new Funcionario();
-            func.setEmail("novo@empresa.com");
-            func.setCpf("111.222.333-44");
-            func.setConsulta(new ArrayList<>());
-
-            when(funcionarioRepository.existsByEmail(func.getEmail())).thenReturn(false);
-            // O Mockito nem vai avaliar o existsByCpf devido ao curto-circuito do '&&', mas deixamos explícito se necessário
-            when(funcionarioRepository.save(func)).thenReturn(func);
-
-            Funcionario resultado = funcionarioService.cadastrar(func);
-
-            assertNotNull(resultado);
-            verify(funcionarioRepository, times(1)).save(func);
-        }
+        assertEquals("Julia", resultado.getNome());
+        assertEquals("julia@empresa.com", resultado.getEmail());
+        verify(unicidadeService).validarEmailUnico(request.getEmail(), null);
+        verify(passwordEncoder).encode("senha");
     }
 
-    @Nested
-    @DisplayName("Testes de Consulta e Busca")
-    class BuscarFuncionarioTest {
+    @Test
+    void deveRecusarCpfDuplicado() {
+        FuncionarioRequestDTO request = new FuncionarioRequestDTO();
+        request.setEmail("julia@empresa.com");
+        request.setCpf("529.982.247-25");
+        when(funcionarioRepository.existsByCpf(request.getCpf())).thenReturn(true);
 
-        @Test
-        @DisplayName("Deve retornar todos os funcionários cadastrados")
-        void deveListarTodos() {
-            List<Funcionario> listaMock = List.of(new Funcionario(), new Funcionario());
-            when(funcionarioRepository.findAll()).thenReturn(listaMock);
-
-            List<Funcionario> resultado = funcionarioService.listarTodos();
-
-            assertEquals(2, resultado.size());
-            verify(funcionarioRepository, times(1)).findAll();
-        }
-
-        @Test
-        @DisplayName("Deve retornar o funcionário correto quando buscado por ID existente")
-        void deveBuscarPorIdComSucesso() {
-            Funcionario func = new Funcionario();
-            func.setId(10L);
-            func.setNome("Barbeiro Blessed");
-
-            when(funcionarioRepository.findById(10L)).thenReturn(Optional.of(func));
-
-            Funcionario resultado = funcionarioService.listarPorId(10L);
-
-            assertNotNull(resultado);
-            assertEquals(10L, resultado.getId());
-            assertEquals("Barbeiro Blessed", resultado.getNome());
-        }
-
-        @Test
-        @DisplayName("Deve lançar FuncionarioNotFoundException ao buscar ID inexistente")
-        void deveLancarNotFoundPorId() {
-            when(funcionarioRepository.findById(99L)).thenReturn(Optional.empty());
-
-            assertThrows(FuncionarioNotFoundException.class, () -> {
-                funcionarioService.listarPorId(99L);
-            });
-        }
-
-        @Test
-        @DisplayName("Deve buscar e retornar funcionário por e-mail com sucesso")
-        void deveBuscarPorEmailComSucesso() {
-            Funcionario func = new Funcionario();
-            func.setEmail("atendimento@blessed.com");
-
-            when(funcionarioRepository.findByEmail("atendimento@blessed.com")).thenReturn(Optional.of(func));
-
-            Funcionario resultado = funcionarioService.buscarPorEmail("atendimento@blessed.com");
-
-            assertNotNull(resultado);
-            assertEquals("atendimento@blessed.com", resultado.getEmail());
-        }
+        assertThrows(FuncionarioAlreadyExistsException.class, () -> funcionarioService.cadastrar(request));
     }
 
-    @Nested
-    @DisplayName("Testes de Atualização e Exclusão")
-    class ModificarFuncionarioTest {
+    @Test
+    void deveAtualizarDadosDoFuncionario() {
+        Funcionario existente = new Funcionario();
+        existente.setId(1L);
+        FuncionarioAtualizarRequestDTO request = new FuncionarioAtualizarRequestDTO();
+        request.setNome("Julia Atualizada");
+        request.setEmail("julia.nova@empresa.com");
+        request.setCpf("529.982.247-25");
+        when(funcionarioRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(funcionarioRepository.save(existente)).thenReturn(existente);
 
-        @Test
-        @DisplayName("Deve atualizar os dados do funcionário se o ID correspondente existir")
-        void deveAtualizarComSucesso() {
-            Funcionario existente = new Funcionario();
-            existente.setId(1L);
-            existente.setNome("Nome Velho");
+        Funcionario resultado = funcionarioService.atualizar(1L, request);
 
-            Funcionario novosDados = new Funcionario();
-            novosDados.setNome("Nome Atualizado");
-            novosDados.setCpf("999.999.999-99");
-            novosDados.setConsulta(new ArrayList<>());
+        assertEquals("Julia Atualizada", resultado.getNome());
+        assertEquals("julia.nova@empresa.com", resultado.getEmail());
+        verify(unicidadeService).validarEmailUnico(request.getEmail(), 1L);
+    }
 
-            when(funcionarioRepository.findById(1L)).thenReturn(Optional.of(existente));
-            when(funcionarioRepository.save(any(Funcionario.class))).thenAnswer(inv -> inv.getArgument(0));
+    @Test
+    void deveListarFuncionariosPaginados() {
+        Funcionario funcionario = new Funcionario();
+        funcionario.setId(1L);
+        funcionario.setNome("Julia");
+        when(funcionarioRepository.findAll(any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(funcionario)));
 
-            Funcionario resultado = funcionarioService.atualizar(1L, novosDados);
+        var resultado = funcionarioService.listarTodos(PageRequest.of(0, 10));
 
-            assertNotNull(resultado);
-            assertEquals("Nome Atualizado", resultado.getNome());
-            assertEquals("999.999.999-99", resultado.getCpf());
-        }
-
-        @Test
-        @DisplayName("Deve deletar funcionário com sucesso a partir de um ID válido")
-        void deveDeletarComSucesso() {
-            Funcionario func = new Funcionario();
-            func.setId(2L);
-
-            when(funcionarioRepository.findById(2L)).thenReturn(Optional.of(func));
-
-            assertDoesNotThrow(() -> funcionarioService.deletar(2L));
-
-            verify(funcionarioRepository, times(1)).delete(func);
-        }
+        assertEquals(1, resultado.getTotalElements());
+        assertEquals("Julia", resultado.getContent().get(0).getNome());
     }
 }

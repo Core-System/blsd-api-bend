@@ -1,4 +1,5 @@
-import static org.junit.jupiter.api.Assertions.*;
+package com.blessed.blsd_api_bend;
+
 class BlsdApiBendApplicationTest {
-  
+
 }
