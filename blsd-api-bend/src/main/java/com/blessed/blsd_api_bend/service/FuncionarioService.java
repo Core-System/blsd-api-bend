@@ -36,10 +36,6 @@ public class FuncionarioService {
         this.unicidadeService = unicidadeService;
     }
 
-    public List<Funcionario> listarTodos() {
-        return funcionarioRepository.findAll();
-    }
-
     @Transactional(readOnly = true)
     public Page<FuncionarioResponseDTO> listarTodos(Pageable pageable) {
         return funcionarioRepository.findAll(pageable)
