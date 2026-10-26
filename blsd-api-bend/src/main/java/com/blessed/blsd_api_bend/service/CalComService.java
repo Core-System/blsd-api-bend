@@ -1,10 +1,10 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.config.NotificacaoCliente;
 import com.blessed.blsd_api_bend.dto.agendamento.AttendeeDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.CalComRequisicaoDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
+import com.blessed.blsd_api_bend.config.NotificacaoPublisher;
 import com.blessed.blsd_api_bend.model.entity.Consulta;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
@@ -30,15 +30,16 @@ public class CalComService {
 
     private final ConsultaRepository consultaRepository;
     private final ClienteRepository clienteRepository;
-    private final NotificacaoCliente notificacaoCliente;
+    private final NotificacaoPublisher notificacaoPublisher;
     private final ServicoRepository servicoRepository;
 
     public CalComService(ConsultaRepository consultaRepository,
                          ClienteRepository clienteRepository,
-                         NotificacaoCliente notificacaoCliente, ServicoRepository servicoRepository) {
+                         NotificacaoPublisher notificacaoPublisher,
+                         ServicoRepository servicoRepository) {
         this.consultaRepository = consultaRepository;
         this.clienteRepository = clienteRepository;
-        this.notificacaoCliente = notificacaoCliente;
+        this.notificacaoPublisher = notificacaoPublisher;
         this.servicoRepository = servicoRepository;
     }
 
@@ -74,7 +75,7 @@ public class CalComService {
                 clienteRepository.findByEmail(email).ifPresentOrElse(cliente -> {
 
                     Servico servicoEscolhido = servicoRepository.findByNome(procedimento)
-                            .orElseThrow(()->new RuntimeException("Serviço não encotrado"));
+                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
 
                     Consulta consulta = new Consulta();
                     consulta.setDataHoraInicio(dataHoraInicio);
@@ -85,11 +86,18 @@ public class CalComService {
 
                     consultaRepository.save(consulta);
 
-                    String data = "%02d/%02d/%d".formatted(zonedInicio.getDayOfMonth(), zonedInicio.getMonthValue(), zonedInicio.getYear());
+                    String data = "%02d/%02d/%d".formatted(
+                            zonedInicio.getDayOfMonth(),
+                            zonedInicio.getMonthValue(),
+                            zonedInicio.getYear()
+                    );
 
-                    String hora = "%02d:%02d".formatted(zonedInicio.getHour(), zonedInicio.getMinute());
+                    String hora = "%02d:%02d".formatted(
+                            zonedInicio.getHour(),
+                            zonedInicio.getMinute()
+                    );
+
                     cliente.gerarToken();
-
                     clienteRepository.save(cliente);
 
                     String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
@@ -98,6 +106,7 @@ public class CalComService {
                             "Sistema Blessed7", 11, "989977147",
                             "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
                     );
+
                     NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
                             cliente.getEmail(),
                             "Agendamento no Studio Blessed7",
@@ -126,7 +135,7 @@ public class CalComService {
                                                   <p style="font-size: 14px; color: #1a5666; line-height: 1.7; margin: 0 0 1.5rem; font-family: 'Poppins', Inter, system-ui, Arial, sans-serif;">
                                                     Prepare-se para o seu momento de autocuidado. Aqui estão os detalhes do seu horário no Blessed7:
                                                   </p>
-                                                  <!-- c0e1ea89 -->
+                                                  
                                                   <div style="background: #FDFFDA; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
                                                     <p style="font-size: 14px; color: #1a5666; margin: 0 0 0.5rem; font-family: 'Poppins', Inter, system-ui, Arial, sans-serif;">
                                                       <strong style="color: #0B3C49;">Serviço:</strong> %s
@@ -174,13 +183,9 @@ public class CalComService {
                                     """.formatted(cliente.getNome(), procedimento, data, hora, linkAgendamento, linkAgendamento)
                     );
 
-                    try {
-                        notificacaoCliente.enviarSms(requestSms);
-                        notificacaoCliente.enviarWhatsapp(requestSms);
-                        notificacaoCliente.enviarEmail(emailRequest);
-                    } catch (Exception e) {
-                        System.err.println("Notificações falharam: " + e.getMessage());
-                    }
+                    notificacaoPublisher.enviarSms(requestSms);
+                    notificacaoPublisher.enviarWhatsapp(requestSms);
+                    notificacaoPublisher.enviarEmail(emailRequest);
 
                 }, () -> System.out.println("Cliente não encontrado: " + email));
             }
