@@ -7,11 +7,11 @@ import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/servico")
@@ -27,7 +27,15 @@ public class ServicoController {
 
     @GetMapping
     public ResponseEntity<Page<ServicoResponseDTO>> listarServicos(
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "asc") String sort) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.fromString(sort), "id")
+        );
+
         return ResponseEntity.ok(servicoService.listarTodos(pageable));
     }
 
