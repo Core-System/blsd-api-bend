@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.blessed.blsd_api_bend.model.entity.Servico;
+import com.blessed.blsd_api_bend.dto.servico.ServicoResponseDTO;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 
@@ -56,14 +57,9 @@ class ServicoControllerTest {
         @Test
         @DisplayName("Deve retornar 200 e a lista com todos os serviços")
         void deveListarTodosOsServicosComSucesso() throws Exception {
-            Servico s1 = new Servico();
-            s1.setId(1L);
-            s1.setNome("Corte de Cabelo");
-            s1.setPreco(BigDecimal.valueOf(50.0));
-            s1.setAvaliacao(null);
-            s1.setDuracao(30);
-            s1.setDescricao("Corte degradê moderno");
-            s1.setProdutos(new ArrayList<>());
+            ServicoResponseDTO s1 = new ServicoResponseDTO(
+                    1L, "Corte de Cabelo", "Corte degradê moderno",
+                    BigDecimal.valueOf(50.0), 30, null, null);
 
                 Mockito.when(servicoService.listarTodos(Mockito.any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(s1)));

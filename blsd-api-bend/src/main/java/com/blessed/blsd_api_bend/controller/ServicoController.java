@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.controller;
 
 
 import com.blessed.blsd_api_bend.dto.servico.ServicoRequestDTO;
+import com.blessed.blsd_api_bend.dto.servico.ServicoResponseDTO;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import jakarta.validation.Valid;
@@ -25,7 +26,7 @@ public class ServicoController {
 
 
     @GetMapping
-    public ResponseEntity<Page<Servico>> listarServicos(
+    public ResponseEntity<Page<ServicoResponseDTO>> listarServicos(
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(servicoService.listarTodos(pageable));
     }
