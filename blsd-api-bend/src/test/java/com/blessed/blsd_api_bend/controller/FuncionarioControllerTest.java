@@ -108,7 +108,7 @@ class FuncionarioControllerTest {
             mockMvc.perform(get("/funcionario")
                             .param("page", "0")
                             .param("size", "1")
-                            .param("sort", "nome,asc"))
+                            .param("sort", "asc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].id").value(1))
@@ -121,7 +121,7 @@ class FuncionarioControllerTest {
             org.junit.jupiter.api.Assertions.assertEquals(0, recebido.getPageNumber());
             org.junit.jupiter.api.Assertions.assertEquals(1, recebido.getPageSize());
             org.junit.jupiter.api.Assertions.assertEquals("ASC",
-                    recebido.getSort().getOrderFor("nome").getDirection().name());
+                    recebido.getSort().getOrderFor("id").getDirection().name());
         }
 
         @Test

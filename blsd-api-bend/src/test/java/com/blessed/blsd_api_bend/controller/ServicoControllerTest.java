@@ -67,7 +67,7 @@ class ServicoControllerTest {
                 mockMvc.perform(get("/servico")
                         .param("page", "0")
                         .param("size", "1")
-                        .param("sort", "nome,asc"))
+                        .param("sort", "asc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].id").value(1))
