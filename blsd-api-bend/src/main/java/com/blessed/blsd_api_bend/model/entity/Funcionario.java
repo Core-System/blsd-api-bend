@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,9 +24,8 @@ public class Funcionario extends Usuario {
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 
-    @ManyToOne
-    @JoinColumn(name = "consulta_id")
-    private List<Consulta> consulta;
+    @OneToMany(mappedBy = "funcionario", cascade = CascadeType.ALL)
+    private List<Consulta> consultas = new ArrayList<>();
 
 
 }

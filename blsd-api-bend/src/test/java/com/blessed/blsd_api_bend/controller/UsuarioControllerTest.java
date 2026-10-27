@@ -15,13 +15,15 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.blessed.blsd_api_bend.dto.usuario.LoginRequestDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioTokenDTO;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.service.ClienteService;
 import com.blessed.blsd_api_bend.service.FuncionarioService;
 import com.blessed.blsd_api_bend.service.UsuarioService;
 
-import java.util.Collections;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -64,7 +66,7 @@ class UsuarioControllerTest {
         @Test
         @DisplayName("Deve realizar login com sucesso e retornar token com status 200")
         void deveLogarComSucesso() throws Exception {
-            UsuarioTokenDTO tokenMock = new UsuarioTokenDTO(1L, "Admin", "login@email.com", "token-fake", null);
+            UsuarioTokenDTO tokenMock = new UsuarioTokenDTO("Admin", "token-fake", null);
 
             Mockito.when(usuarioService.autenticar(Mockito.any(LoginRequestDTO.class)))
                     .thenReturn(tokenMock);
@@ -80,9 +82,7 @@ class UsuarioControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(bodyJson))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
                     .andExpect(jsonPath("$.nome").value("Admin"))
-                    .andExpect(jsonPath("$.email").value("login@email.com"))
                     .andExpect(jsonPath("$.token").value("token-fake"));
         }
     }
@@ -98,22 +98,27 @@ class UsuarioControllerTest {
             cliente.setId(1L);
             cliente.setNome("Carlos");
 
-            Mockito.when(clienteService.listarTodos()).thenReturn(List.of(cliente));
+                ClienteResponseDTO response = new ClienteResponseDTO(
+                    cliente.getId(), cliente.getNome(), null, null, null, null);
+                Mockito.when(clienteService.listarTodos(Mockito.any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(response)));
 
-            mockMvc.perform(get("/usuarios/clientes"))
+                mockMvc.perform(get("/usuarios/clientes").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].id").value(1))
-                    .andExpect(jsonPath("$[0].nome").value("Carlos"));
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].id").value(1))
+                    .andExpect(jsonPath("$.content[0].nome").value("Carlos"));
         }
 
         @Test
         @DisplayName("Deve retornar status 204 No Content quando não houver clientes")
         void deveRetornarNoContentQuandoListaClientesVazia() throws Exception {
-            Mockito.when(clienteService.listarTodos()).thenReturn(Collections.emptyList());
+                Mockito.when(clienteService.listarTodos(Mockito.any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
 
             mockMvc.perform(get("/usuarios/clientes"))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content.length()").value(0));
         }
     }
 
@@ -128,7 +133,7 @@ class UsuarioControllerTest {
             funcionario.setId(2L);
             funcionario.setNome("Ana Barbeira");
 
-            Mockito.when(funcionarioService.listarTodos()).thenReturn(List.of(funcionario));
+                Mockito.when(funcionarioService.listarTodos()).thenReturn(List.of(funcionario));
 
             mockMvc.perform(get("/usuarios/funcionarios"))
                     .andExpect(status().isOk())
@@ -140,7 +145,7 @@ class UsuarioControllerTest {
         @Test
         @DisplayName("Deve retornar status 204 No Content quando não houver funcionários")
         void deveRetornarNoContentQuandoListaFuncionariosVazia() throws Exception {
-            Mockito.when(funcionarioService.listarTodos()).thenReturn(Collections.emptyList());
+            Mockito.when(funcionarioService.listarTodos()).thenReturn(List.of());
 
             mockMvc.perform(get("/usuarios/funcionarios"))
                     .andExpect(status().isNoContent());

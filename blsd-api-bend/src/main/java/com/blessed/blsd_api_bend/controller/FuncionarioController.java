@@ -12,14 +12,16 @@ import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
 import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.service.FuncionarioService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
-
 @RestController
 @RequestMapping("/funcionario")
 public class FuncionarioController {
@@ -33,12 +35,17 @@ public class FuncionarioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FuncionarioResponseDTO>> listarFuncionarios() {
-        List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos()
-                .stream()
-                .map(UsuarioMapper::toResponseDTO)
-                .toList();
-        return ResponseEntity.ok(funcionarios);
+    public ResponseEntity<Page<FuncionarioResponseDTO>> listarFuncionarios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "asc") String sort) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.fromString(sort), "id")
+        );
+
+        return ResponseEntity.ok(funcionarioService.listarTodos(pageable));
     }
 
     @GetMapping("/{id}")

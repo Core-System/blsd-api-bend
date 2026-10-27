@@ -1,159 +1,346 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
-import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
-import com.blessed.blsd_api_bend.model.entity.Cliente;
-import com.blessed.blsd_api_bend.repository.ClienteRepository;
-import com.blessed.blsd_api_bend.repository.ConsultaRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteAtualizarRequestDTO;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteRequestDTO;
+import com.blessed.blsd_api_bend.dto.cliente.ClienteResponseDTO;
+import com.blessed.blsd_api_bend.exception.cliente.ClienteAlreadyExistsException;
+import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
+import com.blessed.blsd_api_bend.model.entity.Acesso;
+import com.blessed.blsd_api_bend.model.entity.Cliente;
+import com.blessed.blsd_api_bend.model.entity.Consulta;
+import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
+import com.blessed.blsd_api_bend.repository.AcessoRepository;
+import com.blessed.blsd_api_bend.repository.ClienteRepository;
+import com.blessed.blsd_api_bend.repository.ConsultaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
 
+    private static final String EMAIL = "lucas@email.com";
+    private static final String TELEFONE = "11999999999";
+
+    // CORREÇÃO: o service tem 6 dependências; o teste antigo só mockava 3,
+    // e as demais ficavam null no @InjectMocks.
     @Mock
     private ClienteRepository clienteRepository;
+
+    @Mock
+    private AcessoRepository acessoRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private ConsultaRepository consultaRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private FileStorageService fileStorageService;
+
+    @Mock
+    private UnicidadeService unicidadeService;
 
     @InjectMocks
     private ClienteService clienteService;
+
+    // ---------- helpers ----------
+
+    private Acesso criarAcessoCliente() {
+        Acesso acesso = new Acesso();
+        acesso.setId(1L);
+        acesso.setNome(TiposAcessos.CLIENTE);
+        return acesso;
+    }
+
+    private Cliente criarCliente(Long id, String nome, String email) {
+        Cliente cliente = new Cliente();
+        cliente.setId(id);
+        cliente.setNome(nome);
+        cliente.setEmail(email);
+        cliente.setAcesso(criarAcessoCliente());
+        return cliente;
+    }
+
+    private ClienteRequestDTO criarCadastroDTO() {
+        ClienteRequestDTO dto = mock(ClienteRequestDTO.class);
+        lenient().when(dto.getEmail()).thenReturn(EMAIL);
+        lenient().when(dto.getTelefone()).thenReturn(TELEFONE);
+        lenient().when(dto.getSenha()).thenReturn("senha123");
+        return dto;
+    }
+
+    // ---------- listarTodos / buscarPorId ----------
+
+    @Nested
+    @DisplayName("Testes de Listagem e Busca")
+    class BuscarClienteTest {
+
+        @Test
+        @DisplayName("Deve listar clientes paginados convertendo para DTO")
+        void deveListarTodosComSucesso() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Cliente cliente = criarCliente(1L, "Lucas", EMAIL);
+            when(clienteRepository.findAll(pageable))
+                    .thenReturn(new PageImpl<>(List.of(cliente), pageable, 1));
+
+            Page<ClienteResponseDTO> resultado = clienteService.listarTodos(pageable);
+
+            assertEquals(1, resultado.getTotalElements());
+            assertEquals(1L, resultado.getContent().get(0).getId());
+            assertEquals("Lucas", resultado.getContent().get(0).getNome());
+        }
+
+        @Test
+        @DisplayName("Deve retornar o cliente em DTO quando o ID existir")
+        void deveBuscarPorIdComSucesso() {
+            when(clienteRepository.findById(1L))
+                    .thenReturn(Optional.of(criarCliente(1L, "Lucas", EMAIL)));
+
+            ClienteResponseDTO resultado = clienteService.buscarPorId(1L);
+
+            assertNotNull(resultado);
+            assertEquals(1L, resultado.getId());
+            assertEquals("Lucas", resultado.getNome());
+        }
+
+        @Test
+        @DisplayName("Deve lançar ClienteNotFoundException quando o ID não existir")
+        void deveLancarExcecaoQuandoIdInexistente() {
+            when(clienteRepository.findById(1L)).thenReturn(Optional.empty());
+
+            ClienteNotFoundException ex = assertThrows(ClienteNotFoundException.class,
+                    () -> clienteService.buscarPorId(1L));
+
+            assertEquals("Cliente com ID 1 não encontrado.", ex.getMessage());
+        }
+    }
+
+    // ---------- cadastrar ----------
 
     @Nested
     @DisplayName("Testes do Fluxo de Cadastro")
     class CadastrarClienteTest {
 
         @Test
-        @DisplayName("Deve cadastrar cliente com sucesso quando o e-mail não existir")
-        void cadastrarComSucesso() {
-            Cliente cliente = new Cliente();
-            cliente.setEmail("teste@email.com");
-            cliente.setSenha("senha123");
+        @DisplayName("Deve cadastrar cliente: valida e-mail, criptografa senha e atribui acesso CLIENTE")
+        void deveCadastrarComSucesso() {
+            Acesso acessoCliente = criarAcessoCliente();
+            ClienteRequestDTO dto = criarCadastroDTO();
 
-            when(clienteRepository.existsByEmail(cliente.getEmail())).thenReturn(false);
+            when(clienteRepository.existsByTelefone(TELEFONE)).thenReturn(false);
             when(passwordEncoder.encode("senha123")).thenReturn("senhaCriptografada");
-            when(clienteRepository.save(any(Cliente.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(acessoRepository.findByNome(TiposAcessos.CLIENTE)).thenReturn(Optional.of(acessoCliente));
+            when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            Cliente resultado = clienteService.cadastrar(cliente);
+            ClienteResponseDTO resultado = clienteService.cadastrar(dto);
 
             assertNotNull(resultado);
-            assertEquals("senhaCriptografada", resultado.getSenha());
-            verify(clienteRepository, times(1)).save(cliente);
+
+            ArgumentCaptor<Cliente> captor = ArgumentCaptor.forClass(Cliente.class);
+            verify(clienteRepository).save(captor.capture());
+            Cliente salvo = captor.getValue();
+            assertEquals("senhaCriptografada", salvo.getSenha());
+            assertSame(acessoCliente, salvo.getAcesso());
+            assertEquals(EMAIL, salvo.getEmail());
+
+            verify(unicidadeService).validarEmailUnico(EMAIL, null);
         }
 
         @Test
-        @DisplayName("Deve lançar exceção ao cadastrar cliente com e-mail já existente")
-        void cadastrarComEmailExistenteLancaExcecao() {
-            Cliente cliente = new Cliente();
-            cliente.setEmail("existente@email.com");
+        @DisplayName("Deve propagar a exceção quando o e-mail já está em uso")
+        void deveLancarExcecaoQuandoEmailJaExiste() {
+            ClienteRequestDTO dto = criarCadastroDTO();
+            // CORREÇÃO: a unicidade do e-mail agora é validada no UnicidadeService,
+            // não mais em clienteRepository.existsByEmail.
+            doThrow(new ClienteAlreadyExistsException("E-mail já está em uso."))
+                    .when(unicidadeService).validarEmailUnico(EMAIL, null);
 
-            when(clienteRepository.existsByEmail(cliente.getEmail())).thenReturn(true);
+            assertThrows(ClienteAlreadyExistsException.class, () -> clienteService.cadastrar(dto));
 
-            assertThrows(ClienteAlreadyExistsException.class, () -> {
-                clienteService.cadastrar(cliente);
-            });
+            verifyNoInteractions(clienteRepository, passwordEncoder, acessoRepository);
+        }
 
+        @Test
+        @DisplayName("Deve lançar ClienteAlreadyExistsException quando o telefone já está em uso")
+        void deveLancarExcecaoQuandoTelefoneJaExiste() {
+            ClienteRequestDTO dto = criarCadastroDTO();
+            when(clienteRepository.existsByTelefone(TELEFONE)).thenReturn(true);
+
+            ClienteAlreadyExistsException ex = assertThrows(ClienteAlreadyExistsException.class,
+                    () -> clienteService.cadastrar(dto));
+
+            assertEquals("Este telefone já está em uso.", ex.getMessage());
+            verify(clienteRepository, never()).save(any());
+            verifyNoInteractions(passwordEncoder);
+        }
+
+        @Test
+        @DisplayName("Deve lançar IllegalStateException quando o acesso CLIENTE não foi inicializado")
+        void deveLancarExcecaoQuandoAcessoClienteNaoInicializado() {
+            ClienteRequestDTO dto = criarCadastroDTO();
+            when(clienteRepository.existsByTelefone(TELEFONE)).thenReturn(false);
+            when(acessoRepository.findByNome(TiposAcessos.CLIENTE)).thenReturn(Optional.empty());
+
+            IllegalStateException ex = assertThrows(IllegalStateException.class,
+                    () -> clienteService.cadastrar(dto));
+
+            assertEquals("Acesso CLIENTE não inicializado no sistema.", ex.getMessage());
             verify(clienteRepository, never()).save(any());
         }
     }
 
-    @Nested
-    @DisplayName("Testes de Busca por ID")
-    class BuscarClienteTest {
-
-        @Test
-        @DisplayName("Deve lançar exceção quando buscar por ID inexistente")
-        void buscarPorIdInexistenteLancaExcecao() {
-            when(clienteRepository.findById(1L)).thenReturn(Optional.empty());
-
-            assertThrows(ClienteNotFoundException.class, () -> {
-                clienteService.listarTodos(1L);
-            });
-        }
-
-        @Test
-        @DisplayName("Deve retornar Cliente quando o ID existir")
-        void buscarPorIdComSucesso() {
-            Cliente cliente = new Cliente();
-            cliente.setId(1L);
-            cliente.setNome("Lucas");
-
-            when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
-
-            Cliente resultado = clienteService.listarPorId(1L);
-
-            assertNotNull(resultado);
-            assertEquals(1L, resultado.getId());
-            assertEquals("Lucas", resultado.getNome());
-        }
-    }
+    // ---------- atualizar / deletar ----------
 
     @Nested
     @DisplayName("Testes de Atualização e Remoção")
     class ModificarClienteTest {
 
         @Test
-        @DisplayName("Deve atualizar os dados do cliente com sucesso quando ele existir")
-        void atualizarComSucesso() {
-            Cliente clienteExistente = new Cliente();
-            clienteExistente.setId(1L);
-            clienteExistente.setNome("Nome Antigo");
-            clienteExistente.setEmail("antigo@email.com");
+        @DisplayName("Deve atualizar os dados do cliente quando ele existir")
+        void deveAtualizarComSucesso() {
+            Cliente existente = criarCliente(1L, "Nome Antigo", "antigo@email.com");
+            ClienteAtualizarRequestDTO dto = mock(ClienteAtualizarRequestDTO.class);
+            when(dto.getNome()).thenReturn("Nome Novo");
+            when(dto.getEmail()).thenReturn("novo@email.com");
+            when(dto.getTelefone()).thenReturn(TELEFONE);
+            when(dto.getUrlFoto()).thenReturn("/uploads/foto.png");
 
-            Cliente novosDados = new Cliente();
-            novosDados.setNome("Nome Novo");
-            novosDados.setEmail("novo@email.com");
+            when(clienteRepository.findById(1L)).thenReturn(Optional.of(existente));
+            when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteExistente));
-            when(clienteRepository.save(any(Cliente.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            Cliente resultado = clienteService.atualizar(1L, novosDados);
+            ClienteResponseDTO resultado = clienteService.atualizar(1L, dto);
 
             assertNotNull(resultado);
-            assertEquals("Nome Novo", resultado.getNome());
-            assertEquals("novo@email.com", resultado.getEmail());
-            verify(clienteRepository, times(1)).save(clienteExistente);
+            assertEquals("Nome Novo", existente.getNome());
+            assertEquals("novo@email.com", existente.getEmail());
+            assertEquals(TELEFONE, existente.getTelefone());
+            assertEquals("/uploads/foto.png", existente.getUrlFoto());
+            // e-mail único validado ignorando o próprio cliente (id 1)
+            verify(unicidadeService).validarEmailUnico("novo@email.com", 1L);
+            verify(clienteRepository).save(existente);
         }
 
         @Test
-        @DisplayName("Deve lançar exceção ao tentar atualizar cliente inexistente")
-        void atualizarClienteInexistenteLancaExcecao() {
-            Cliente novosDados = new Cliente();
+        @DisplayName("Deve lançar ClienteNotFoundException ao atualizar cliente inexistente")
+        void deveLancarExcecaoAoAtualizarInexistente() {
+            ClienteAtualizarRequestDTO dto = mock(ClienteAtualizarRequestDTO.class);
             when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
-            assertThrows(ClienteNotFoundException.class, () -> {
-                clienteService.atualizar(99L, novosDados);
-            });
+            assertThrows(ClienteNotFoundException.class, () -> clienteService.atualizar(99L, dto));
 
+            verifyNoInteractions(unicidadeService);
             verify(clienteRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("Deve deletar cliente com sucesso se o ID existir")
-        void deletarComSucesso() {
-            Cliente cliente = new Cliente();
-            cliente.setId(1L);
+        @DisplayName("Deve propagar a exceção e não salvar quando o novo e-mail já pertence a outro usuário")
+        void deveLancarExcecaoAoAtualizarComEmailEmUso() {
+            Cliente existente = criarCliente(1L, "Lucas", EMAIL);
+            ClienteAtualizarRequestDTO dto = mock(ClienteAtualizarRequestDTO.class);
+            when(dto.getEmail()).thenReturn("outro@email.com");
 
+            when(clienteRepository.findById(1L)).thenReturn(Optional.of(existente));
+            doThrow(new ClienteAlreadyExistsException("E-mail já está em uso."))
+                    .when(unicidadeService).validarEmailUnico("outro@email.com", 1L);
+
+            assertThrows(ClienteAlreadyExistsException.class, () -> clienteService.atualizar(1L, dto));
+
+            assertEquals(EMAIL, existente.getEmail());
+            verify(clienteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve apagar as consultas do cliente e depois o cliente")
+        void deveDeletarComSucesso() {
+            Cliente cliente = criarCliente(1L, "Lucas", EMAIL);
+            List<Consulta> consultas = List.of(new Consulta(), new Consulta());
             when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
+            when(consultaRepository.findByClienteId(1L)).thenReturn(consultas);
 
-            assertDoesNotThrow(() -> clienteService.deletar(1L));
+            clienteService.deletar(1L);
 
-            verify(clienteRepository, times(1)).delete(cliente);
+            // Ordem importa: consultas referenciam o cliente (FK)
+            InOrder ordem = inOrder(consultaRepository, clienteRepository);
+            ordem.verify(consultaRepository).deleteAll(consultas);
+            ordem.verify(clienteRepository).delete(cliente);
+        }
+
+        @Test
+        @DisplayName("Deve lançar ClienteNotFoundException ao deletar cliente inexistente")
+        void deveLancarExcecaoAoDeletarInexistente() {
+            when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThrows(ClienteNotFoundException.class, () -> clienteService.deletar(99L));
+
+            verifyNoInteractions(consultaRepository);
+            verify(clienteRepository, never()).delete(any());
+        }
+    }
+
+    // ---------- atualizarFotoPerfil ----------
+
+    @Nested
+    @DisplayName("Testes de Atualização da Foto de Perfil")
+    class AtualizarFotoPerfilTest {
+
+        @Test
+        @DisplayName("Deve armazenar o arquivo e salvar a URL /uploads/... no cliente")
+        void deveAtualizarFotoComSucesso() {
+            Cliente cliente = criarCliente(1L, "Lucas", EMAIL);
+            MultipartFile file = mock(MultipartFile.class);
+            when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
+            when(fileStorageService.armazenarArquivo(file)).thenReturn("abc123/foto.png");
+
+            clienteService.atualizarFotoPerfil(1L, file);
+
+            assertEquals("/uploads/abc123/foto.png", cliente.getUrlFoto());
+            verify(clienteRepository).save(cliente);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção e não armazenar arquivo quando o cliente não existe")
+        void deveLancarExcecaoQuandoClienteNaoEncontrado() {
+            MultipartFile file = mock(MultipartFile.class);
+            when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
+
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> clienteService.atualizarFotoPerfil(99L, file));
+
+            assertEquals("Cliente não encontrado.", ex.getMessage());
+            verifyNoInteractions(fileStorageService);
+            verify(clienteRepository, never()).save(any());
         }
     }
 }

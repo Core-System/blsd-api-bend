@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.blessed.blsd_api_bend.model.entity.Servico;
+import com.blessed.blsd_api_bend.dto.servico.ServicoResponseDTO;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 
@@ -54,24 +57,25 @@ class ServicoControllerTest {
         @Test
         @DisplayName("Deve retornar 200 e a lista com todos os serviços")
         void deveListarTodosOsServicosComSucesso() throws Exception {
-            Servico s1 = new Servico();
-            s1.setId(1L);
-            s1.setNome("Corte de Cabelo");
-            s1.setPreco(BigDecimal.valueOf(50.0));
-            s1.setAvaliacao(null);
-            s1.setDuracao(30);
-            s1.setDescricacao("Corte degradê moderno");
-            s1.setProdutos(new ArrayList<>());
+            ServicoResponseDTO s1 = new ServicoResponseDTO(
+                    1L, "Corte de Cabelo", "Corte degradê moderno",
+                    BigDecimal.valueOf(50.0), 30, null, null);
 
-            Mockito.when(servicoService.listarTodos()).thenReturn(List.of(s1));
+                Mockito.when(servicoService.listarTodos(Mockito.any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(s1)));
 
-            mockMvc.perform(get("/servico"))
+                mockMvc.perform(get("/servico")
+                        .param("page", "0")
+                        .param("size", "1")
+                        .param("sort", "nome,asc"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].id").value(1))
-                    .andExpect(jsonPath("$[0].nome").value("Corte de Cabelo"))
-                    .andExpect(jsonPath("$[0].preco").value(50.0))
-                    .andExpect(jsonPath("$[0].duracao").value(30));
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].id").value(1))
+                    .andExpect(jsonPath("$.content[0].nome").value("Corte de Cabelo"))
+                    .andExpect(jsonPath("$.content[0].preco").value(50.0))
+                    .andExpect(jsonPath("$.content[0].duracao").value(30))
+                    .andExpect(jsonPath("$.number").value(0))
+                    .andExpect(jsonPath("$.size").value(1));
         }
 
         @Test
@@ -83,7 +87,7 @@ class ServicoControllerTest {
             servico.setPreco(BigDecimal.valueOf(35.0));
             servico.setAvaliacao(null);
             servico.setDuracao(25);
-            servico.setDescricacao("Barba com toalha quente");
+            servico.setDescricao("Barba com toalha quente");
             servico.setProdutos(new ArrayList<>());
 
             Mockito.when(servicoService.listarPorId(2L)).thenReturn(servico);
@@ -119,7 +123,7 @@ class ServicoControllerTest {
             servicoSalvo.setPreco(BigDecimal.valueOf(120.0));
             servicoSalvo.setAvaliacao(null);
             servicoSalvo.setDuracao(90);
-            servicoSalvo.setDescricacao("Luzes platinadas");
+            servicoSalvo.setDescricao("Luzes platinadas");
             servicoSalvo.setProdutos(new ArrayList<>());
 
             Mockito.when(servicoService.cadastrar(Mockito.any(Servico.class)))

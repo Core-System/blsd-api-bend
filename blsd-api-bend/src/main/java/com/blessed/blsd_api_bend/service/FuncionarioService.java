@@ -11,6 +11,8 @@ import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
 import com.blessed.blsd_api_bend.repository.AcessoRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,8 +36,10 @@ public class FuncionarioService {
         this.unicidadeService = unicidadeService;
     }
 
-    public List<Funcionario> listarTodos() {
-        return funcionarioRepository.findAll();
+    @Transactional(readOnly = true)
+    public Page<FuncionarioResponseDTO> listarTodos(Pageable pageable) {
+        return funcionarioRepository.findAll(pageable)
+                .map(UsuarioMapper::toResponseDTO);
     }
 
     public Funcionario listarPorId(Long id) {

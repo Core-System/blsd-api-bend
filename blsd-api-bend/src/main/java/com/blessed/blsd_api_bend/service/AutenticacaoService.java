@@ -1,6 +1,7 @@
 package com.blessed.blsd_api_bend.service;
 
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioDetalheDTO;
+import com.blessed.blsd_api_bend.exception.usuario.UsuarioNotFoundException;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,12 +21,12 @@ public class AutenticacaoService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsuarioNotFoundException {
         return clienteRepository.findByEmail(username)
                 .map(UsuarioDetalheDTO::new )
                 .orElseGet(() -> funcionarioRepository.findByEmail(username)
                         .map(UsuarioDetalheDTO::new )
-                        .orElseThrow(() -> new UsernameNotFoundException(
-                                String.format("usuario: %s nao encontrado", username))) );
+                        .orElseThrow(() -> new UsuarioNotFoundException(
+                                String.format("usuario: %s não encontrado", username))) );
     }
 }

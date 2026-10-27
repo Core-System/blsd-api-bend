@@ -20,8 +20,10 @@ public class Servico {
     private Long id;
 
     private String nome;
-    private String descricacao;
+    private String descricao;
     private BigDecimal preco;
+    private String categoria;
+    private String imgUrl;
     private Integer duracao;
 
     @ManyToOne

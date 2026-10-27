@@ -2,13 +2,16 @@ package com.blessed.blsd_api_bend.controller;
 
 
 import com.blessed.blsd_api_bend.dto.servico.ServicoRequestDTO;
+import com.blessed.blsd_api_bend.dto.servico.ServicoResponseDTO;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.service.ServicoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/servico")
@@ -23,9 +26,17 @@ public class ServicoController {
 
 
     @GetMapping
-    public ResponseEntity<List<Servico>> listarServicos() {
-        List<Servico> servicos = servicoService.listarTodos();
-        return ResponseEntity.ok(servicos);
+    public ResponseEntity<Page<ServicoResponseDTO>> listarServicos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "asc") String sort) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.fromString(sort), "id")
+        );
+
+        return ResponseEntity.ok(servicoService.listarTodos(pageable));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +53,7 @@ public class ServicoController {
         servicoCriado.setPreco(servicoDTO.getPreco());
         servicoCriado.setAvaliacao(servicoDTO.getAvaliacao());
         servicoCriado.setDuracao(servicoDTO.getDuracao());
-        servicoCriado.setDescricacao(servicoDTO.getDescricacao());
+        servicoCriado.setDescricao(servicoDTO.getDescricacao());
         servicoCriado.setProdutos(servicoDTO.getProduto());
 
 

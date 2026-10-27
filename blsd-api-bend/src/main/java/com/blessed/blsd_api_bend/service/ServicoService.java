@@ -1,10 +1,12 @@
 package com.blessed.blsd_api_bend.service;
 
+import com.blessed.blsd_api_bend.dto.servico.ServicoResponseDTO;
 import com.blessed.blsd_api_bend.exception.servico.ServicoAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
-import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.repository.ServicoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,24 @@ public class ServicoService implements ICrudService<Servico> {
     @Transactional(readOnly = true)
     public List<Servico> listarTodos() {
         return servicoRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ServicoResponseDTO> listarTodos(Pageable pageable) {
+        return servicoRepository.findAll(pageable)
+                .map(this::toResponseDTO);
+    }
+
+    private ServicoResponseDTO toResponseDTO(Servico servico) {
+        return new ServicoResponseDTO(
+                servico.getId(),
+                servico.getNome(),
+                servico.getDescricao(),
+                servico.getPreco(),
+                servico.getDuracao(),
+                servico.getCategoria(),
+                servico.getImgUrl()
+        );
     }
 
     @Override
@@ -47,7 +67,7 @@ public class ServicoService implements ICrudService<Servico> {
                     p.setNome(p.getNome());
                     p.setPreco(p.getPreco());
                     p.setAvaliacao(p.getAvaliacao());
-                    p.setDescricacao(p.getDescricacao());
+                    p.setDescricao(p.getDescricao());
                     p.setDuracao(p.getDuracao());
                     p.setProdutos(p.getProdutos());
                     return servicoRepository.save(p);
