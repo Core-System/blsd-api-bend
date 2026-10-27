@@ -42,6 +42,11 @@ public class FuncionarioService {
                 .map(UsuarioMapper::toResponseDTO);
     }
 
+    @Transactional(readOnly = true)
+    public List<Funcionario> listarTodos() {
+        return funcionarioRepository.findAll();
+    }
+
     public Funcionario listarPorId(Long id) {
         return funcionarioRepository.findById(id)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));

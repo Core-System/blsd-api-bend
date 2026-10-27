@@ -1,6 +1,6 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
+import com.blessed.blsd_api_bend.config.NotificacaoPublisher;
 import com.blessed.blsd_api_bend.dto.agendamento.AgendamentoRequestDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoEmailRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
@@ -25,20 +25,20 @@ public class ConsultaService {
     private final ServicoRepository servicoRepository;
     private final AvaliacaoRepository avaliacaoRepository;
     private final CalComService calComService;
-    private final NotificacaoCliente notificacaoCliente;
+    private final NotificacaoPublisher notificacaoPublisher;
 
     public ConsultaService(ConsultaRepository consultaRepository,
                            ClienteRepository clienteRepository,
                            ServicoRepository servicoRepository,
                            AvaliacaoRepository avaliacaoRepository,
                            CalComService calComService,
-                           NotificacaoCliente notificacaoCliente) {
+                           NotificacaoPublisher notificacaoPublisher) {
         this.consultaRepository = consultaRepository;
         this.clienteRepository = clienteRepository;
         this.servicoRepository = servicoRepository;
         this.avaliacaoRepository = avaliacaoRepository;
         this.calComService = calComService;
-        this.notificacaoCliente = notificacaoCliente;
+        this.notificacaoPublisher = notificacaoPublisher;
     }
 
     public List<ConsultaResponseDTO> listarPorCliente(Long clienteId) {
@@ -78,7 +78,7 @@ public class ConsultaService {
         cliente.gerarToken();
         clienteRepository.save(cliente);
 
-//        dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
+        dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
 
         return toDTO(consulta);
     }
@@ -88,11 +88,6 @@ public class ConsultaService {
             String data = "%02d/%02d/%d".formatted(zonedInicio.getDayOfMonth(), zonedInicio.getMonthValue(), zonedInicio.getYear());
             String hora = "%02d:%02d".formatted(zonedInicio.getHour(), zonedInicio.getMinute());
             String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
-
-            NotificacaoSmsWhatsappRequest requestSms = new NotificacaoSmsWhatsappRequest(
-                    "Sistema Blessed7", 11, "989977147",
-                    "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
-            );
 
             NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
                     cliente.getEmail(),
@@ -120,11 +115,23 @@ public class ConsultaService {
                     """.formatted(cliente.getNome(), procedimento, data, hora, linkAgendamento)
             );
 
-            notificacaoCliente.enviarSms(requestSms);
-            notificacaoCliente.enviarWhatsapp(requestSms);
-            notificacaoCliente.enviarEmail(emailRequest);
+            notificacaoPublisher.enviarEmail(emailRequest);
+            String telefone = cliente.getTelefone();
+            if (telefone != null && !telefone.isBlank()) {
+                String telefoneNumeros = telefone.replaceAll("\\D", "");
+                if (telefoneNumeros.length() >= 10) {
+                    int ddd = Integer.parseInt(telefoneNumeros.substring(0, 2));
+                    String numero = telefoneNumeros.substring(2);
+                    NotificacaoSmsWhatsappRequest requestSms = new NotificacaoSmsWhatsappRequest(
+                            "Sistema Blessed7", ddd, numero,
+                            "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
+                    );
+                    notificacaoPublisher.enviarSms(requestSms);
+                    notificacaoPublisher.enviarWhatsapp(requestSms);
+                }
+            }
         } catch (Exception e) {
-            System.err.println("Aviso: Falha ao enviar notificações, mas o agendamento foi concluído: " + e.getMessage());
+            throw new IllegalStateException("Falha ao publicar notificações do agendamento", e);
         }
     }
 

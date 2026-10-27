@@ -1,6 +1,6 @@
 package com.blessed.blsd_api_bend.service;
 
-import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
+import com.blessed.blsd_api_bend.config.NotificacaoPublisher;
 import com.blessed.blsd_api_bend.dto.agendamento.AgendamentoRequestDTO;
 import com.blessed.blsd_api_bend.dto.agendamento.ReservaDataDTO;
 import com.blessed.blsd_api_bend.dto.consulta.AvaliacaoRequestDTO;
@@ -51,7 +51,7 @@ class ConsultaServiceTest {
     private CalComService calComService;
 
     @Mock
-    private NotificacaoCliente notificacaoCliente;
+    private NotificacaoPublisher notificacaoPublisher;
 
     @InjectMocks
     private ConsultaService consultaService;

@@ -11,24 +11,19 @@ public class NotificacaoPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-    private static final String EXCHANGE_NAME = "notification.exchange";
-    private static final String ROUTING_KEY_EMAIL = "notification.email";
-    private static final String ROUTING_KEY_SMS = "notification.sms";
-    private static final String ROUTING_KEY_WHATSAPP = "notification.whatsapp";
-
     public NotificacaoPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
     public void enviarEmail(NotificacaoEmailRequest request) {
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY_EMAIL, request);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_EMAIL, request);
     }
 
     public void enviarSms(NotificacaoSmsWhatsappRequest request) {
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY_SMS, request);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_SMS, request);
     }
 
     public void enviarWhatsapp(NotificacaoSmsWhatsappRequest request) {
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY_WHATSAPP, request);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_WHATSAPP, request);
     }
 }
