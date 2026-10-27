@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -50,11 +51,13 @@ public class CalComService {
         try {
             ResponseEntity<CalComResponseDTO> response = calComClient.criarAgendamento("Bearer " + apiKey, apiVersion, request);
 
-            if (response.getBody() != null && response.getBody().data() != null) {
+            if (response.getBody() != null
+                    && response.getBody().data() != null
+                    && StringUtils.hasText(response.getBody().data().uid())) {
                 return response.getBody().data().uid();
             }
 
-            throw new RuntimeException("A resposta da API do Cal.com não retornou o UID da reserva.");
+            throw new IllegalStateException("A resposta da API do Cal.com não retornou um UID válido para a reserva.");
 
         } catch (FeignException.Conflict e) {
             System.err.println("CONFLITO NO CAL.COM (Horário já reservado): " + e.contentUTF8());

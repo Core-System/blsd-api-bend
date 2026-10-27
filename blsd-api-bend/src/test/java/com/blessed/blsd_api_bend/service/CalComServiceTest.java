@@ -104,7 +104,7 @@ class CalComServiceTest {
                     () -> calComService.solicitarAgendamento("Maria", "maria@email.com", "2026-03-01T10:00:00Z")
             );
 
-            assertEquals("A resposta da API do Cal.com não retornou o UID da reserva.", exception.getMessage());
+            assertEquals("A resposta da API do Cal.com não retornou um UID válido para a reserva.", exception.getMessage());
         }
 
         @Test

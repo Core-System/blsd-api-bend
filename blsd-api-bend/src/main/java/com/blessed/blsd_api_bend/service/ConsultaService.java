@@ -10,6 +10,7 @@ import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelExcept
 import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ConsultaService {
 
     private final ConsultaRepository consultaRepository;
@@ -78,7 +80,11 @@ public class ConsultaService {
         cliente.gerarToken();
         clienteRepository.save(cliente);
 
-        dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
+        try {
+            dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
+        } catch (IllegalStateException exception) {
+            log.error("Agendamento {} salvo, mas as notificações não foram publicadas", consulta.getId(), exception);
+        }
 
         return toDTO(consulta);
     }
@@ -181,7 +187,7 @@ public class ConsultaService {
         Consulta consulta = consultaRepository.findById(consultaId)
                 .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
 
-        if (consulta.getCalBookingUid() == null) {
+        if (consulta.getCalBookingUid() == null || consulta.getCalBookingUid().isBlank()) {
             throw new RuntimeException("Esta consulta não possui vinculo com o Cal.com");
         }
 

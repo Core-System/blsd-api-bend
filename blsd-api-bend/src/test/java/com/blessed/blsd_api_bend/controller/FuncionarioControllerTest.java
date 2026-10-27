@@ -57,8 +57,6 @@ class FuncionarioControllerTest {
     @MockitoBean
     private FuncionarioService funcionarioService;
 
-    // CORREÇÃO: o construtor da controller exige AcessoRepository.
-    // Sem este mock o contexto do @WebMvcTest não sobe.
     @MockitoBean
     private AcessoRepository acessoRepository;
 
@@ -114,7 +112,6 @@ class FuncionarioControllerTest {
                     .andExpect(jsonPath("$.content[0].id").value(1))
                     .andExpect(jsonPath("$.content[0].nome").value("Julia"));
 
-            // Garante que page/size/sort da query string chegaram ao service
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(funcionarioService).listarTodos(captor.capture());
             Pageable recebido = captor.getValue();

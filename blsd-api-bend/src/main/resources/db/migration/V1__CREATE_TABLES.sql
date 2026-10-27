@@ -99,6 +99,7 @@ CREATE TABLE consulta
     tipo_pagamento   ENUM('DINHEIRO', 'DEBITO', 'PIX', 'CREDITO'),
     data_pagamento   DATE,
     local_consulta   ENUM('CLINICA', 'DOMICILIO'),
+    cal_booking_uid VARCHAR(255),
     fk_cliente       BIGINT,
     fk_funcionario   BIGINT,
     FOREIGN KEY (fk_cliente) REFERENCES cliente (id),

@@ -52,8 +52,6 @@ class ClienteServiceTest {
     private static final String EMAIL = "lucas@email.com";
     private static final String TELEFONE = "11999999999";
 
-    // CORREÇÃO: o service tem 6 dependências; o teste antigo só mockava 3,
-    // e as demais ficavam null no @InjectMocks.
     @Mock
     private ClienteRepository clienteRepository;
 
@@ -75,7 +73,6 @@ class ClienteServiceTest {
     @InjectMocks
     private ClienteService clienteService;
 
-    // ---------- helpers ----------
 
     private Acesso criarAcessoCliente() {
         Acesso acesso = new Acesso();
@@ -101,7 +98,6 @@ class ClienteServiceTest {
         return dto;
     }
 
-    // ---------- listarTodos / buscarPorId ----------
 
     @Nested
     @DisplayName("Testes de Listagem e Busca")
@@ -147,7 +143,6 @@ class ClienteServiceTest {
         }
     }
 
-    // ---------- cadastrar ----------
 
     @Nested
     @DisplayName("Testes do Fluxo de Cadastro")
@@ -182,8 +177,6 @@ class ClienteServiceTest {
         @DisplayName("Deve propagar a exceção quando o e-mail já está em uso")
         void deveLancarExcecaoQuandoEmailJaExiste() {
             ClienteRequestDTO dto = criarCadastroDTO();
-            // CORREÇÃO: a unicidade do e-mail agora é validada no UnicidadeService,
-            // não mais em clienteRepository.existsByEmail.
             doThrow(new ClienteAlreadyExistsException("E-mail já está em uso."))
                     .when(unicidadeService).validarEmailUnico(EMAIL, null);
 
@@ -221,7 +214,6 @@ class ClienteServiceTest {
         }
     }
 
-    // ---------- atualizar / deletar ----------
 
     @Nested
     @DisplayName("Testes de Atualização e Remoção")
@@ -247,7 +239,6 @@ class ClienteServiceTest {
             assertEquals("novo@email.com", existente.getEmail());
             assertEquals(TELEFONE, existente.getTelefone());
             assertEquals("/uploads/foto.png", existente.getUrlFoto());
-            // e-mail único validado ignorando o próprio cliente (id 1)
             verify(unicidadeService).validarEmailUnico("novo@email.com", 1L);
             verify(clienteRepository).save(existente);
         }
@@ -291,7 +282,6 @@ class ClienteServiceTest {
 
             clienteService.deletar(1L);
 
-            // Ordem importa: consultas referenciam o cliente (FK)
             InOrder ordem = inOrder(consultaRepository, clienteRepository);
             ordem.verify(consultaRepository).deleteAll(consultas);
             ordem.verify(clienteRepository).delete(cliente);
@@ -309,7 +299,6 @@ class ClienteServiceTest {
         }
     }
 
-    // ---------- atualizarFotoPerfil ----------
 
     @Nested
     @DisplayName("Testes de Atualização da Foto de Perfil")
