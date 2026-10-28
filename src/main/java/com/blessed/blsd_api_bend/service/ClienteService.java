@@ -44,9 +44,18 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listarTodos(String busca, Pageable pageable) {
+        return clienteRepository.buscar(normalizarBusca(busca), pageable)
+                .map(UsuarioMapper::toResponseDTO);
+    }
+
     public Page<ClienteResponseDTO> listarTodos(Pageable pageable) {
         return clienteRepository.findAll(pageable)
                 .map(UsuarioMapper::toResponseDTO);
+    }
+
+    private String normalizarBusca(String busca) {
+        return busca == null || busca.isBlank() ? null : busca.trim();
     }
 
     @Transactional(readOnly = true)

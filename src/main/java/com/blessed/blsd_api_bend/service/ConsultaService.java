@@ -14,6 +14,8 @@ import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,19 @@ public class ConsultaService {
     public List<ConsultaResponseDTO> listarPorCliente(Long clienteId) {
         return consultaRepository.findByClienteId(clienteId)
                 .stream().map(this::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ConsultaResponseDTO> listarTodos(StatusConsulta status,
+                                                  String busca,
+                                                  String procedimento,
+                                                  LocalDateTime inicio,
+                                                  LocalDateTime fim,
+                                                  Pageable pageable) {
+        String buscaNormalizada = busca == null || busca.isBlank() ? null : busca.trim();
+        String procedimentoNormalizado = procedimento == null || procedimento.isBlank() ? null : procedimento.trim();
+        return consultaRepository.buscar(status, buscaNormalizada, procedimentoNormalizado, inicio, fim, pageable)
+                .map(this::toDTO);
     }
 
     @Transactional

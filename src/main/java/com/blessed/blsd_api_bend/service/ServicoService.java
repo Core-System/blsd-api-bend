@@ -29,9 +29,18 @@ public class ServicoService implements ICrudService<Servico> {
     }
 
     @Transactional(readOnly = true)
+    public Page<ServicoResponseDTO> listarTodos(String busca, String categoria, Pageable pageable) {
+        return servicoRepository.buscar(normalizar(busca), normalizar(categoria), pageable)
+                .map(this::toResponseDTO);
+    }
+
     public Page<ServicoResponseDTO> listarTodos(Pageable pageable) {
         return servicoRepository.findAll(pageable)
                 .map(this::toResponseDTO);
+    }
+
+    private String normalizar(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
     private ServicoResponseDTO toResponseDTO(Servico servico) {
