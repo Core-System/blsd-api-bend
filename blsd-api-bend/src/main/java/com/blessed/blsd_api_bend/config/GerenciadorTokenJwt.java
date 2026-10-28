@@ -23,8 +23,8 @@ public class GerenciadorTokenJwt {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.validity}")
-    private long jwtTokenValidity;
+    @Value("${jwt.validity-seconds}")
+    private long jwtTokenValiditySeconds;
 
     public String getUsernameFromToken(String token) {
         return getClaimForToken(token, Claims::getSubject);
@@ -62,7 +62,7 @@ public class GerenciadorTokenJwt {
                 .claim("id", usuarioId)
                 .signWith(parseSecret())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValiditySeconds * 1_000))
                 .compact();
     }
 
@@ -75,7 +75,7 @@ public class GerenciadorTokenJwt {
                 .claim("id", usuarioId)
                 .signWith(parseSecret())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity * 1_000))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValiditySeconds * 1_000))
                 .compact();
     }
 

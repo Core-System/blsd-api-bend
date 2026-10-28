@@ -42,6 +42,8 @@ CREATE TABLE cliente
     telefone     VARCHAR(11) UNIQUE,
     endereco_id  BIGINT,
     acesso_id    BIGINT,
+    token_agendamento VARCHAR(255),
+    expiracao_token_agendamento DATETIME,
     FOREIGN KEY (endereco_id) REFERENCES endereco (id),
     FOREIGN KEY (acesso_id) REFERENCES acesso (id)
 );
@@ -100,8 +102,40 @@ CREATE TABLE consulta
     data_pagamento   DATE,
     local_consulta   ENUM('CLINICA', 'DOMICILIO'),
     cal_booking_uid VARCHAR(255),
+    status_consulta VARCHAR(30),
+    avaliacao_id BIGINT,
     fk_cliente       BIGINT,
     fk_funcionario   BIGINT,
     FOREIGN KEY (fk_cliente) REFERENCES cliente (id),
-    FOREIGN KEY (fk_funcionario) REFERENCES funcionario (id)
+    FOREIGN KEY (fk_funcionario) REFERENCES funcionario (id),
+    FOREIGN KEY (avaliacao_id) REFERENCES avaliacao (id)
+);
+
+CREATE TABLE consulta_servico
+(
+    consulta_id BIGINT NOT NULL,
+    servico_id BIGINT NOT NULL,
+    PRIMARY KEY (consulta_id, servico_id),
+    FOREIGN KEY (consulta_id) REFERENCES consulta (id),
+    FOREIGN KEY (servico_id) REFERENCES servico (id)
+);
+
+CREATE TABLE servico_produto
+(
+    servico_id BIGINT NOT NULL,
+    produto_id BIGINT NOT NULL,
+    PRIMARY KEY (servico_id, produto_id),
+    FOREIGN KEY (servico_id) REFERENCES servico (id),
+    FOREIGN KEY (produto_id) REFERENCES produto (id)
+);
+
+CREATE TABLE movimentacao
+(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    produto_id BIGINT NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    quantidade INT NOT NULL,
+    data_hora DATETIME NOT NULL,
+    observacao VARCHAR(255),
+    FOREIGN KEY (produto_id) REFERENCES produto (id)
 );

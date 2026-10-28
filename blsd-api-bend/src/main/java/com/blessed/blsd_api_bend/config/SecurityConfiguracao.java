@@ -49,13 +49,10 @@ public class SecurityConfiguracao {
 
     private static final String[] ROTAS_PUBLICAS_GERAIS = {
             "/api/public/**",
-            "/usuarios/login/**",
+            "/usuarios/login",
             "/error/**",
-            "/h2-console/**",
             "/usuarios/link-agendamento/**",
-            "/uploads/**",
-            "/consulta/**",
-            "/servico/**"
+            "/uploads/**"
     };
 
     public SecurityConfiguracao(AutenticacaoService autenticacaoService,
@@ -79,13 +76,16 @@ public class SecurityConfiguracao {
                 .csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/cliente").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/avaliacao").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/servico", "/servico/*").permitAll()
 
                         .requestMatchers(ROTAS_PUBLICAS_GERAIS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
 
-                        .requestMatchers("/produto/**", "/funcionario/**").hasAnyAuthority("FUNCIONARIO", "GESTOR")
+                        .requestMatchers("/servico/**", "/produto/**", "/funcionario/**")
+                            .hasAnyAuthority("FUNCIONARIO", "GESTOR")
                         .requestMatchers("/movimentacao/**").hasAuthority("GESTOR")
+                        .requestMatchers("/consulta/**", "/dashboard/**", "/avaliacao/**")
+                            .authenticated()
 
                         .anyRequest().authenticated()
                 )

@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.config;
 
 import com.blessed.blsd_api_bend.service.AutenticacaoService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +55,10 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
                 } catch (ExpiredJwtException exception) {
                     LOGGER.info("[FALHA AUTENTICACAO] - Token expirado, usuario: {} - {}",
                             exception.getClaims().getSubject(), exception.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                } catch (JwtException exception) {
+                    LOGGER.info("[FALHA AUTENTICACAO] - Token invalido: {}", exception.getMessage());
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 }
