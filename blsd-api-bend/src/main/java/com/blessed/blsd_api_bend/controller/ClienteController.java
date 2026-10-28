@@ -64,6 +64,7 @@ public class ClienteController {
     }
 
     @PatchMapping("/{id}/foto")
+    @PreAuthorize("hasAuthority('GESTOR') or (hasAuthority('CLIENTE') and #id == principal.id)")
     public ResponseEntity<Void> atualizarFoto(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {

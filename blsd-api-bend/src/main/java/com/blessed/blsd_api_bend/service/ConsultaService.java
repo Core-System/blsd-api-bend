@@ -7,6 +7,9 @@ import com.blessed.blsd_api_bend.dto.agendamento.NotificacaoSmsWhatsappRequest;
 import com.blessed.blsd_api_bend.dto.agendamento.ReservaDataDTO;
 import com.blessed.blsd_api_bend.dto.consulta.*;
 import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaNaoConcluidaException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaNotFoundException;
+import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.*;
@@ -144,10 +147,10 @@ public class ConsultaService {
     @Transactional
     public ConsultaResponseDTO avaliar(Long consultaId, AvaliacaoRequestDTO dto) {
         Consulta consulta = consultaRepository.findById(consultaId)
-                .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
+                .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
 
         if (consulta.getStatusConsulta() != StatusConsulta.CONCLUIDA) {
-            throw new RuntimeException("Só é possível avaliar consultas concluídas");
+            throw new ConsultaNaoConcluidaException("Só é possível avaliar consultas concluídas.");
         }
 
         Avaliacao avaliacao = new Avaliacao();
@@ -185,10 +188,10 @@ public class ConsultaService {
 
     public ReservaDataDTO buscarDetalhesExternos(Long consultaId) {
         Consulta consulta = consultaRepository.findById(consultaId)
-                .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
+                .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
 
         if (consulta.getCalBookingUid() == null || consulta.getCalBookingUid().isBlank()) {
-            throw new RuntimeException("Esta consulta não possui vinculo com o Cal.com");
+            throw new ReservaExternaNotFoundException("Esta consulta não possui vínculo com o Cal.com.");
         }
 
         return calComService.buscarDetalhesReserva(consulta.getCalBookingUid());

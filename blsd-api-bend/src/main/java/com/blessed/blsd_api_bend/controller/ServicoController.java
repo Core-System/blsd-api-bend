@@ -51,11 +51,8 @@ public class ServicoController {
 
         servicoCriado.setNome(servicoDTO.getNome());
         servicoCriado.setPreco(servicoDTO.getPreco());
-        servicoCriado.setAvaliacao(servicoDTO.getAvaliacao());
         servicoCriado.setDuracao(servicoDTO.getDuracao());
-        servicoCriado.setDescricao(servicoDTO.getDescricacao());
-        servicoCriado.setProdutos(servicoDTO.getProduto());
-
+        servicoCriado.setDescricao(servicoDTO.getDescricao());
 
         return ResponseEntity.status(201).body(servicoService.cadastrar(servicoCriado));
     }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class Avaliacao {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Integer nota;

@@ -1,6 +1,8 @@
 package com.blessed.blsd_api_bend.service;
 
 import com.blessed.blsd_api_bend.dto.produto.MovimentacaoRequestDTO;
+import com.blessed.blsd_api_bend.exception.estoque.EstoqueInsuficienteException;
+import com.blessed.blsd_api_bend.exception.estoque.ProdutoNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.MovimentacaoATT;
 import com.blessed.blsd_api_bend.model.entity.Produto;
 import com.blessed.blsd_api_bend.repository.MovimentacaoRepositoryATT;
@@ -26,14 +28,14 @@ public class MovimentacaoService {
     @Transactional
     public MovimentacaoATT registrar(MovimentacaoRequestDTO dto) {
         Produto produto = produtoRepository.findById(dto.getProdutoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontrado"));
 
         // Atualiza estoque automaticamente
         if (dto.getTipo() == MovimentacaoATT.TipoMovimentacao.ENTRADA) {
             produto.setQuantidade(produto.getQuantidade() + dto.getQuantidade());
         } else {
             if (produto.getQuantidade() < dto.getQuantidade()) {
-                throw new RuntimeException("Estoque insuficiente");
+                throw new EstoqueInsuficienteException("Estoque insuficiente para realizar a saída.");
             }
             produto.setQuantidade(produto.getQuantidade() - dto.getQuantidade());
         }

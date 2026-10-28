@@ -4,16 +4,15 @@ import com.blessed.blsd_api_bend.config.GerenciadorTokenJwt;
 import com.blessed.blsd_api_bend.dto.usuario.LoginRequestDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioTokenDTO;
 import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
+import com.blessed.blsd_api_bend.exception.agendamento.TokenAgendamentoException;
 import com.blessed.blsd_api_bend.model.entity.Cliente;
 import com.blessed.blsd_api_bend.model.entity.Usuario;
 import com.blessed.blsd_api_bend.repository.ClienteRepository;
 import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
-import com.google.auth.oauth2.JwtProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -62,16 +61,16 @@ public class UsuarioService {
                 .orElseThrow(() -> new ClienteNotFoundException("Token inválido ou usuário não encontrado"));
 
         if (clienteEncontrado.getTokenAgendamento() == null) {
-            throw new RuntimeException("Este token já foi utilizado");
+            throw new TokenAgendamentoException("Este token já foi utilizado.");
         }
 
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(clienteEncontrado.getExpiracaoTokenAgendamento())) {
-            throw new RuntimeException("Token expirado");
+            throw new TokenAgendamentoException("Token expirado.");
         }
 
         if (!tokenAgendamento.equals(clienteEncontrado.getTokenAgendamento())) {
-            throw new RuntimeException("Token inválido");
+            throw new TokenAgendamentoException("Token inválido.");
         }
 
         String token = gerenciadorTokenJwt.generateToken(

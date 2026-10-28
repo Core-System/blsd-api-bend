@@ -1,9 +1,20 @@
 package com.blessed.blsd_api_bend.dto.agendamento;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class AgendamentoRequestDTO {
+    @NotBlank
     private String nome;
+
+    @NotBlank
+    @Email
     private String email;
+
+    @NotBlank
     private String dataHoraInicio;
+
+    @NotBlank
     private String procedimento;
 
     public String getDataHoraInicio() {

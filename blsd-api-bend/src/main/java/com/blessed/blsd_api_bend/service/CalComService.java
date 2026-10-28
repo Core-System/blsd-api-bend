@@ -1,27 +1,16 @@
 package com.blessed.blsd_api_bend.service;
 
 import com.blessed.blsd_api_bend.config.clientes.CalComCliente;
-import com.blessed.blsd_api_bend.config.clientes.NotificacaoCliente;
 import com.blessed.blsd_api_bend.dto.agendamento.*;
 import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelException;
-import com.blessed.blsd_api_bend.model.entity.Consulta;
-import com.blessed.blsd_api_bend.model.entity.Servico;
-import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
-import com.blessed.blsd_api_bend.repository.ClienteRepository;
-import com.blessed.blsd_api_bend.repository.ConsultaRepository;
-import com.blessed.blsd_api_bend.repository.ServicoRepository;
+import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.List;
 
 @Service
 public class CalComService {
@@ -86,7 +75,7 @@ public class CalComService {
             if (response.getBody() != null && response.getBody().data() != null) {
                 return response.getBody().data();
             }
-            throw new RuntimeException("Reserva não encontrada no Cal.com");
+            throw new ReservaExternaNotFoundException("Reserva não encontrada no Cal.com.");
 
         } catch (FeignException e) {
             System.err.println("Erro ao buscar detalhes no CAL.COM: " + e.contentUTF8());

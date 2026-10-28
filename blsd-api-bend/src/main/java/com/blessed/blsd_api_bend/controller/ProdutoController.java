@@ -6,6 +6,7 @@ import com.blessed.blsd_api_bend.model.entity.Produto;
 import com.blessed.blsd_api_bend.service.ProdutoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ProdutoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<List<ProdutoResponseDTO>> listarProdutos() {
         List<ProdutoResponseDTO> dtos = produtoService.listarTodos()
                 .stream()
@@ -34,11 +36,13 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<ProdutoResponseDTO> listarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(toDTO(produtoService.listarPorId(id)));
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('GESTOR')")
     public ResponseEntity<ProdutoResponseDTO> criarProduto(@Valid @RequestBody ProdutoRequestDTO produtoDTO) {
         Produto produtoCriado = new Produto();
         produtoCriado.setNome(produtoDTO.getNome());
@@ -49,6 +53,7 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('GESTOR')")
     public ResponseEntity<ProdutoResponseDTO> atualizarProduto(@PathVariable Long id,
                                                                @Valid @RequestBody ProdutoRequestDTO produtoDTO) {
         Produto produtoExistente = produtoService.listarPorId(id);
@@ -60,6 +65,7 @@ public class ProdutoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('GESTOR')")
     public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
         produtoService.deletar(id);
         return ResponseEntity.noContent().build();

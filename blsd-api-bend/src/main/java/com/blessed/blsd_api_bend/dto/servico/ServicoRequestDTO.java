@@ -1,31 +1,35 @@
 package com.blessed.blsd_api_bend.dto.servico;
 
-import com.blessed.blsd_api_bend.model.entity.Avaliacao;
-import com.blessed.blsd_api_bend.model.entity.Produto;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServicoRequestDTO {
 
+    @NotBlank
+    @Size(max = 100)
     private String nome;
-    private String descricacao;
+
+    @Size(max = 255)
+    @JsonAlias("descricacao")
+    private String descricao;
+
+    @NotNull
+    @Positive
     private BigDecimal preco;
+
+    @NotNull
+    @Positive
     private Integer duracao;
-
-    private Avaliacao avaliacao;
-
-    private List<Produto> produto;
 
 }

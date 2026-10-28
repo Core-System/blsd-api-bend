@@ -103,7 +103,7 @@ public class FuncionarioService {
 
     public void atualizarFotoPerfil(Long funcionarioId, MultipartFile file) {
         Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado."));
+                .orElseThrow(() -> new FuncionarioNotFoundException("Funcionário não encontrado."));
         String caminhoRelativo = fileStorageService.armazenarArquivo(file);
         funcionario.setUrlFoto("/uploads/" + caminhoRelativo);
         funcionarioRepository.save(funcionario);
