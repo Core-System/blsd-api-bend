@@ -10,6 +10,7 @@ import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundExcept
 import com.blessed.blsd_api_bend.exception.estoque.EstoqueInsuficienteException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioProtegidoException;
 import com.blessed.blsd_api_bend.exception.infraestrutura.ArmazenamentoArquivoException;
 import com.blessed.blsd_api_bend.exception.produto.ProdutoNotFoundException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoAlreadyExistsException;
@@ -80,7 +81,8 @@ public class GlobalExceptionHandler {
             ConsultaNaoConcluidaException.class,
             EstoqueInsuficienteException.class,
             TokenAgendamentoException.class,
-            ServicoAlreadyExistsException.class
+            ServicoAlreadyExistsException.class,
+            FuncionarioProtegidoException.class
     })
     public ResponseEntity<Object> handleBusinessConflict(RuntimeException ex) {
         HttpStatus status = ex instanceof TokenAgendamentoException
