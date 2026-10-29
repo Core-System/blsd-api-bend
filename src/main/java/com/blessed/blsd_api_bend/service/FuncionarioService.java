@@ -6,6 +6,7 @@ import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioProtegidoException;
 import com.blessed.blsd_api_bend.model.entity.Acesso;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
