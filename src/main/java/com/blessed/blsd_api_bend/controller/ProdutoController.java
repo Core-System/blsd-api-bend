@@ -59,7 +59,7 @@ public class ProdutoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('GESTOR')")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<ProdutoResponseDTO> criarProduto(@Valid @RequestBody ProdutoRequestDTO produtoDTO) {
         Produto produtoCriado = new Produto();
         produtoCriado.setNome(produtoDTO.getNome());
@@ -70,7 +70,7 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('GESTOR')")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
     public ResponseEntity<ProdutoResponseDTO> atualizarProduto(@PathVariable Long id,
                                                                @Valid @RequestBody ProdutoRequestDTO produtoDTO) {
         Produto produtoExistente = produtoService.listarPorId(id);
