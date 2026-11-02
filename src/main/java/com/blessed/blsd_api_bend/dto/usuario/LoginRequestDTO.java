@@ -24,4 +24,7 @@ public class LoginRequestDTO {
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
     private String senha;
 
+    @NotBlank(message = "O CAPTCHA é obrigatório")
+    private String recaptchaToken;
+
 }

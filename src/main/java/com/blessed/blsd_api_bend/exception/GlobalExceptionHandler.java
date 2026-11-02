@@ -16,6 +16,7 @@ import com.blessed.blsd_api_bend.exception.produto.ProdutoNotFoundException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 import com.blessed.blsd_api_bend.exception.usuario.UsuarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.usuario.RecaptchaValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -115,6 +116,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsuarioNotFoundException.class)
     public ResponseEntity<Object> handleUsuarioNotFound(UsuarioNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, "Not found", ex.getMessage());
+    }
+
+    @ExceptionHandler(RecaptchaValidationException.class)
+    public ResponseEntity<Object> handleRecaptchaValidation(RecaptchaValidationException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
