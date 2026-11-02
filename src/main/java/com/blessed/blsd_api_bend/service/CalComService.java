@@ -2,6 +2,7 @@ package com.blessed.blsd_api_bend.service;
 
 import com.blessed.blsd_api_bend.config.clientes.CalComCliente;
 import com.blessed.blsd_api_bend.dto.agendamento.*;
+import com.blessed.blsd_api_bend.dto.consulta.HorarioDisponivelDTO;
 import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelException;
 import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
 import feign.FeignException;
@@ -10,9 +11,15 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.util.StringUtils;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Service
+@Slf4j
 public class CalComService {
 
     private final CalComCliente calComClient;
@@ -22,6 +29,15 @@ public class CalComService {
 
     @Value("${calcom.api.version:2026-02-25}")
     private String apiVersion;
+
+    @Value("${calcom.slots-api-version:2024-09-04}")
+    private String slotsApiVersion;
+
+    @Value("${calcom.event-type-id}")
+    private Integer eventTypeId;
+
+    @Value("${calcom.time-zone:America/Sao_Paulo}")
+    private String timeZone;
 
     public CalComService(CalComCliente calComClient) {
         this.calComClient = calComClient;
@@ -33,7 +49,7 @@ public class CalComService {
         attendee.setEmail(email);
 
         CalComRequisicaoDTO request = new CalComRequisicaoDTO();
-        request.setEventTypeId(5805309);
+        request.setEventTypeId(eventTypeId);
         request.setStart(dataInicio);
         request.setAttendee(attendee);
 
@@ -61,6 +77,62 @@ public class CalComService {
             System.err.println("ERRO GERAL DO FEIGN / CAL.COM: " + e.status() + " - " + e.contentUTF8());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Serviço de agendamento externo indisponível no momento.");
+        }
+    }
+
+    public List<HorarioDisponivelDTO> buscarHorariosDisponiveis(LocalDate data) {
+        try {
+            LocalDate diaSeguinte = data.plusDays(1);
+            ResponseEntity<CalComSlotsResponseDTO> response = calComClient.buscarSlots(
+                    "Bearer " + apiKey,
+                    slotsApiVersion,
+                    eventTypeId,
+                    data.toString(),
+                    diaSeguinte.toString(),
+                    timeZone,
+                    "range"
+            );
+
+            List<CalComSlotsResponseDTO.SlotDTO> slotsDoDia =
+                    response.getBody() == null || response.getBody().data() == null
+                            ? List.of()
+                            : response.getBody().data().getOrDefault(data.toString(), List.of());
+
+            if (slotsDoDia.isEmpty()) {
+                return List.of();
+            }
+
+            List<HorarioDisponivelDTO> horarios = new ArrayList<>();
+            for (CalComSlotsResponseDTO.SlotDTO slot : slotsDoDia) {
+                String inicio = slot.start();
+                String fim = slot.end();
+                if (!StringUtils.hasText(inicio)) {
+                    continue;
+                }
+
+                OffsetDateTime inicioFormatado = OffsetDateTime.parse(inicio);
+                String fimFormatado = StringUtils.hasText(fim)
+                        ? OffsetDateTime.parse(fim).toString()
+                        : inicioFormatado.plusMinutes(60).toString();
+                horarios.add(new HorarioDisponivelDTO(
+                        inicioFormatado.toString(),
+                        fimFormatado,
+                        inicioFormatado.toLocalTime().toString().substring(0, 5)
+                ));
+            }
+            return horarios;
+        } catch (FeignException e) {
+            String resposta = e.contentUTF8();
+            log.error(
+                    "Erro ao consultar disponibilidade no CAL.COM. status={}, url={}, mensagem={}, resposta={}",
+                    e.status(),
+                    e.request() == null ? "indisponível" : e.request().url(),
+                    e.getMessage(),
+                    StringUtils.hasText(resposta) ? resposta : "sem corpo na resposta",
+                    e
+            );
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Não foi possível consultar os horários disponíveis.");
         }
     }
 

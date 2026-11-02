@@ -10,5 +10,12 @@ public record ConsultaResponseDTO(
         String statusConsulta,
         List<String> servicos,
         AvaliacaoDTO avaliacao,
-        String calBookingUid
-) {}
+        String calBookingUid,
+        ClienteResumoDTO cliente
+) {
+    public record ClienteResumoDTO(
+            Long id,
+            String nome,
+            String email
+    ) {}
+}

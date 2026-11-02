@@ -20,8 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import org.springframework.data.domain.PageImpl;
 
 @Service
 @Slf4j
@@ -33,6 +36,9 @@ public class ConsultaService {
     private final AvaliacaoRepository avaliacaoRepository;
     private final CalComService calComService;
     private final NotificacaoPublisher notificacaoPublisher;
+
+    @org.springframework.beans.factory.annotation.Value("${calcom.time-zone:America/Sao_Paulo}")
+    private String timeZone;
 
     public ConsultaService(ConsultaRepository consultaRepository,
                            ClienteRepository clienteRepository,
@@ -66,10 +72,21 @@ public class ConsultaService {
                 .map(this::toDTO);
     }
 
+    @Transactional(readOnly = true)
+    public Page<HorarioDisponivelDTO> listarHorariosDisponiveis(LocalDate data, Pageable pageable) {
+        List<HorarioDisponivelDTO> horarios = calComService.buscarHorariosDisponiveis(data);
+        int inicio = (int) Math.min(pageable.getOffset(), horarios.size());
+        int fim = Math.min(inicio + pageable.getPageSize(), horarios.size());
+        List<HorarioDisponivelDTO> pagina = horarios.subList(inicio, fim);
+        return new PageImpl<>(pagina, pageable, horarios.size());
+    }
+
     @Transactional
     public ConsultaResponseDTO criarAgendamento(AgendamentoRequestDTO request) {
         ZonedDateTime zonedInicio = ZonedDateTime.parse(request.getDataHoraInicio());
-        LocalDateTime dataHoraInicio = zonedInicio.toLocalDateTime();
+        LocalDateTime dataHoraInicio = zonedInicio
+                .withZoneSameInstant(ZoneId.of(timeZone))
+                .toLocalDateTime();
         LocalDateTime dataHoraFim = dataHoraInicio.plusMinutes(60);
 
         List<Consulta> conflitos = consultaRepository.findConsultasConflitantes(dataHoraInicio, dataHoraFim);
@@ -99,7 +116,7 @@ public class ConsultaService {
         clienteRepository.save(cliente);
 
         try {
-            dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
+            dispararNotificacoes(cliente, request.getProcedimento(), dataHoraInicio);
         } catch (IllegalStateException exception) {
             log.error("Agendamento {} salvo, mas as notificações não foram publicadas", consulta.getId(), exception);
         }
@@ -107,10 +124,10 @@ public class ConsultaService {
         return toDTO(consulta);
     }
 
-    private void dispararNotificacoes(Cliente cliente, String procedimento, ZonedDateTime zonedInicio) {
+    private void dispararNotificacoes(Cliente cliente, String procedimento, LocalDateTime dataHoraInicio) {
         try {
-            String data = "%02d/%02d/%d".formatted(zonedInicio.getDayOfMonth(), zonedInicio.getMonthValue(), zonedInicio.getYear());
-            String hora = "%02d:%02d".formatted(zonedInicio.getHour(), zonedInicio.getMinute());
+            String data = "%02d/%02d/%d".formatted(dataHoraInicio.getDayOfMonth(), dataHoraInicio.getMonthValue(), dataHoraInicio.getYear());
+            String hora = "%02d:%02d".formatted(dataHoraInicio.getHour(), dataHoraInicio.getMinute());
             String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
 
             NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
@@ -197,7 +214,15 @@ public class ConsultaService {
                 c.getServicos() != null
                         ? c.getServicos().stream().map(Servico::getNome).toList()
                         : List.of(),
-                avaliacaoDTO, c.getCalBookingUid()
+                avaliacaoDTO,
+                c.getCalBookingUid(),
+                c.getCliente() == null
+                        ? null
+                        : new ConsultaResponseDTO.ClienteResumoDTO(
+                                c.getCliente().getId(),
+                                c.getCliente().getNome(),
+                                c.getCliente().getEmail()
+                        )
         );
     }
 

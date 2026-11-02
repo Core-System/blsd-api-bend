@@ -66,6 +66,20 @@ public class ConsultaController {
         ));
     }
 
+    @GetMapping("/horarios-disponiveis")
+    public ResponseEntity<Page<HorarioDisponivelDTO>> listarHorariosDisponiveis(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        if (page < 0 || size < 1 || size > 50) {
+            throw new IllegalArgumentException("Os parâmetros de paginação são inválidos.");
+        }
+        return ResponseEntity.ok(consultaService.listarHorariosDisponiveis(
+                data,
+                PageRequest.of(page, size)
+        ));
+    }
+
     @PostMapping("/{consultaId}/avaliar")
     @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO', 'CLIENTE')")
     public ResponseEntity<ConsultaResponseDTO> avaliar(
