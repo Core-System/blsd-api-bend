@@ -13,6 +13,7 @@ import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundExcept
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaStatusInvalidoException;
 import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
+import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -84,6 +85,10 @@ public class ConsultaService {
 
     @Transactional
     public ConsultaResponseDTO criarAgendamento(AgendamentoRequestDTO request) {
+        if (request.getLocalConsulta() == LocalConsulta.DOMICILIO) {
+            throw new IllegalArgumentException("O atendimento em domicílio está temporariamente indisponível.");
+        }
+
         ZonedDateTime zonedInicio = ZonedDateTime.parse(request.getDataHoraInicio());
         LocalDateTime dataHoraInicio = zonedInicio
                 .withZoneSameInstant(ZoneId.of(timeZone))
@@ -109,6 +114,7 @@ public class ConsultaService {
         consulta.setCliente(cliente);
         consulta.setStatusConsulta(StatusConsulta.PENDENTE);
         consulta.setServicos(List.of(servicoEscolhido));
+        consulta.setLocalConsulta(request.getLocalConsulta());
         consulta.setCalBookingUid(bookingUid);
 
         consultaRepository.save(consulta);
@@ -117,7 +123,7 @@ public class ConsultaService {
         clienteRepository.save(cliente);
 
         try {
-            dispararNotificacoes(cliente, request.getProcedimento(), dataHoraInicio);
+            dispararNotificacoes(cliente, request.getProcedimento(), dataHoraInicio, request.getLocalConsulta());
         } catch (IllegalStateException exception) {
             log.error("Agendamento {} salvo, mas as notificações não foram publicadas", consulta.getId(), exception);
         }
@@ -125,7 +131,7 @@ public class ConsultaService {
         return toDTO(consulta);
     }
 
-    private void dispararNotificacoes(Cliente cliente, String procedimento, LocalDateTime dataHoraInicio) {
+    private void dispararNotificacoes(Cliente cliente, String procedimento, LocalDateTime dataHoraInicio, LocalConsulta localConsulta) {
         try {
             String data = "%02d/%02d/%d".formatted(dataHoraInicio.getDayOfMonth(), dataHoraInicio.getMonthValue(), dataHoraInicio.getYear());
             String hora = "%02d:%02d".formatted(dataHoraInicio.getHour(), dataHoraInicio.getMinute());
@@ -147,6 +153,7 @@ public class ConsultaService {
                             <p style="font-size: 14px; color: #1a5666;"><strong>Serviço:</strong> %s</p>
                             <p style="font-size: 14px; color: #1a5666;"><strong>Data:</strong> %s</p>
                             <p style="font-size: 14px; color: #1a5666;"><strong>Horário:</strong> %s</p>
+                            <p style="font-size: 14px; color: #1a5666;"><strong>Local:</strong> Clínica — Rua Entre-Folhas, 4a - Jardim Arize</p>
                           </div>
                           <div style="text-align: center;">
                             <a href="%s" style="background: #0B3C49; color: #FFFCF9; padding: 12px 32px; border-radius: 12px; text-decoration: none;">Gerenciar Agendamento</a>
@@ -247,6 +254,7 @@ public class ConsultaService {
                         : List.of(),
                 avaliacaoDTO,
                 c.getCalBookingUid(),
+                c.getLocalConsulta() != null ? c.getLocalConsulta().name() : null,
                 c.getCliente() == null
                         ? null
                         : new ConsultaResponseDTO.ClienteResumoDTO(
