@@ -93,4 +93,16 @@ public class ConsultaController {
     public ResponseEntity<ReservaDataDTO> buscarDetalhesCalCom(@PathVariable Long consultaId) {
         return ResponseEntity.ok(consultaService.buscarDetalhesExternos(consultaId));
     }
+
+    @PostMapping("/{consultaId}/concluir")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<ConsultaResponseDTO> concluir(@PathVariable Long consultaId) {
+        return ResponseEntity.ok(consultaService.concluir(consultaId));
+    }
+
+    @PostMapping("/{consultaId}/cancelar")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<ConsultaResponseDTO> cancelar(@PathVariable Long consultaId) {
+        return ResponseEntity.ok(consultaService.cancelar(consultaId));
+    }
 }

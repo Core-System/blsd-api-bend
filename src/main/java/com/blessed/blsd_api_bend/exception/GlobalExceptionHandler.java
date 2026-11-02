@@ -7,6 +7,7 @@ import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNaoConcluidaException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaStatusInvalidoException;
 import com.blessed.blsd_api_bend.exception.estoque.EstoqueInsuficienteException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
@@ -80,6 +81,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             ConsultaNaoConcluidaException.class,
+            ConsultaStatusInvalidoException.class,
             EstoqueInsuficienteException.class,
             TokenAgendamentoException.class,
             ServicoAlreadyExistsException.class,

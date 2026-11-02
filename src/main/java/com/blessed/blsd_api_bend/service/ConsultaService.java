@@ -10,6 +10,7 @@ import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelExcept
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNaoConcluidaException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaStatusInvalidoException;
 import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.repository.*;
@@ -195,6 +196,36 @@ public class ConsultaService {
         consultaRepository.save(consulta);
 
         return toDTO(consulta);
+    }
+
+    @Transactional
+    public ConsultaResponseDTO concluir(Long consultaId) {
+        Consulta consulta = buscarConsulta(consultaId);
+        validarPendente(consulta);
+        consulta.setStatusConsulta(StatusConsulta.CONCLUIDA);
+        return toDTO(consultaRepository.save(consulta));
+    }
+
+    @Transactional
+    public ConsultaResponseDTO cancelar(Long consultaId) {
+        Consulta consulta = buscarConsulta(consultaId);
+        validarPendente(consulta);
+        if (consulta.getCalBookingUid() != null && !consulta.getCalBookingUid().isBlank()) {
+            calComService.cancelarReserva(consulta.getCalBookingUid());
+        }
+        consulta.setStatusConsulta(StatusConsulta.CANCELADA);
+        return toDTO(consultaRepository.save(consulta));
+    }
+
+    private Consulta buscarConsulta(Long consultaId) {
+        return consultaRepository.findById(consultaId)
+                .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
+    }
+
+    private void validarPendente(Consulta consulta) {
+        if (consulta.getStatusConsulta() != StatusConsulta.PENDENTE) {
+            throw new ConsultaStatusInvalidoException("A consulta não está pendente e não pode ser alterada.");
+        }
     }
 
     private ConsultaResponseDTO toDTO(Consulta c) {

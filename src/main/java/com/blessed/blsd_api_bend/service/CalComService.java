@@ -27,10 +27,10 @@ public class CalComService {
     @Value("${calcom.api.key}")
     private String apiKey;
 
-    @Value("${calcom.api.version:2026-02-25}")
+    @Value("${calcom.api.version}")
     private String apiVersion;
 
-    @Value("${calcom.slots-api-version:2024-09-04}")
+    @Value("${calcom.slots-api-version}")
     private String slotsApiVersion;
 
     @Value("${calcom.event-type-id}")
@@ -147,12 +147,32 @@ public class CalComService {
             if (response.getBody() != null && response.getBody().data() != null) {
                 return response.getBody().data();
             }
+
             throw new ReservaExternaNotFoundException("Reserva não encontrada no Cal.com.");
 
         } catch (FeignException e) {
             System.err.println("Erro ao buscar detalhes no CAL.COM: " + e.contentUTF8());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Não foi possível consultar os detalhes do agendamento no Cal.com.");
+        }
+    }
+
+    public void cancelarReserva(String uid) {
+        try {
+            calComClient.cancelarReserva(
+                    "Bearer " + apiKey,
+                    apiVersion,
+                    uid,
+                    new CalComCancelamentoDTO("Cancelamento solicitado pela administração.")
+            );
+        } catch (FeignException e) {
+            log.error("Erro ao cancelar reserva no CAL.COM. status={}, url={}, resposta={}",
+                    e.status(),
+                    e.request() == null ? "indisponível" : e.request().url(),
+                    StringUtils.hasText(e.contentUTF8()) ? e.contentUTF8() : "sem corpo na resposta",
+                    e);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Não foi possível cancelar a reserva no Cal.com.");
         }
     }
 //
