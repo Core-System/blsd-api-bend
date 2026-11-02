@@ -262,7 +262,7 @@ public class ConsultaService {
                 .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
 
         if (consulta.getCalBookingUid() == null || consulta.getCalBookingUid().isBlank()) {
-            throw new ReservaExternaNotFoundException("Esta consulta não possui vínculo com o Cal.com.");
+            throw new ReservaExternaNotFoundException("Esta consulta não pode ser cancelada.");
         }
 
         return calComService.buscarDetalhesReserva(consulta.getCalBookingUid());

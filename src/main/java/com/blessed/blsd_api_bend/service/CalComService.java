@@ -172,7 +172,7 @@ public class CalComService {
                     StringUtils.hasText(e.contentUTF8()) ? e.contentUTF8() : "sem corpo na resposta",
                     e);
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "Não foi possível cancelar a reserva no Cal.com.");
+                    "Não foi possível cancelar a consulta.");
         }
     }
 //
