@@ -86,7 +86,9 @@ public class FuncionarioService {
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionário não encontrado"));
 
         protegerGestor(funcionario, usuarioAutenticado, false);
-        unicidadeService.validarEmailUnico(dto.getEmail(), id);
+        if (!dto.getEmail().equalsIgnoreCase(funcionario.getEmail())) {
+            unicidadeService.validarEmailUnicoFuncionario(dto.getEmail(), id);
+        }
 
         if (dto.getCpf() != null && !dto.getCpf().equals(funcionario.getCpf()) && funcionarioRepository.existsByCpf(dto.getCpf())) {
             throw new FuncionarioAlreadyExistsException("CPF já está em uso por outro funcionário.");

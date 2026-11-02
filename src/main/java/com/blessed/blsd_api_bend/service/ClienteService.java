@@ -93,11 +93,13 @@ public class ClienteService {
     public ClienteResponseDTO atualizar(Long id, ClienteAtualizarRequestDTO dto) {
         Cliente cliente = buscarEntidadePorId(id);
 
-        unicidadeService.validarEmailUnico(dto.getEmail(), id);
+        if (!dto.getEmail().equalsIgnoreCase(cliente.getEmail())) {
+            unicidadeService.validarEmailUnicoCliente(dto.getEmail(), id);
+        }
 
         cliente.setNome(dto.getNome());
         cliente.setEmail(dto.getEmail());
-        cliente.setTelefone(dto.getTelefone());
+        cliente.setTelefone(dto.getTelefone().replaceAll("\\D", ""));
         cliente.setDataNasc(dto.getDataNasc());
         cliente.setUrlFoto(dto.getUrlFoto());
 
