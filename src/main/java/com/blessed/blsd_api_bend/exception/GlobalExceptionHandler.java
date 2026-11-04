@@ -7,14 +7,17 @@ import com.blessed.blsd_api_bend.exception.cliente.ClienteNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNaoConcluidaException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaStatusInvalidoException;
 import com.blessed.blsd_api_bend.exception.estoque.EstoqueInsuficienteException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioProtegidoException;
 import com.blessed.blsd_api_bend.exception.infraestrutura.ArmazenamentoArquivoException;
 import com.blessed.blsd_api_bend.exception.produto.ProdutoNotFoundException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 import com.blessed.blsd_api_bend.exception.usuario.UsuarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.usuario.RecaptchaValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,9 +81,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             ConsultaNaoConcluidaException.class,
+            ConsultaStatusInvalidoException.class,
             EstoqueInsuficienteException.class,
             TokenAgendamentoException.class,
-            ServicoAlreadyExistsException.class
+            ServicoAlreadyExistsException.class,
+            FuncionarioProtegidoException.class
     })
     public ResponseEntity<Object> handleBusinessConflict(RuntimeException ex) {
         HttpStatus status = ex instanceof TokenAgendamentoException
@@ -113,6 +118,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsuarioNotFoundException.class)
     public ResponseEntity<Object> handleUsuarioNotFound(UsuarioNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, "Not found", ex.getMessage());
+    }
+
+    @ExceptionHandler(RecaptchaValidationException.class)
+    public ResponseEntity<Object> handleRecaptchaValidation(RecaptchaValidationException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -29,14 +29,16 @@ public class ServicoController {
     public ResponseEntity<Page<ServicoResponseDTO>> listarServicos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "asc") String sort) {
+            @RequestParam(defaultValue = "asc") String sort,
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String categoria) {
         Pageable pageable = PageRequest.of(
                 page,
                 size,
                 Sort.by(Sort.Direction.fromString(sort), "id")
         );
 
-        return ResponseEntity.ok(servicoService.listarTodos(pageable));
+        return ResponseEntity.ok(servicoService.listarTodos(busca, categoria, pageable));
     }
 
     @GetMapping("/{id}")

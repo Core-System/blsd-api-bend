@@ -21,9 +21,33 @@ public class UnicidadeService {
                 .map(f -> !f.getId().equals(idIgnorado))
                 .orElseGet(() -> funcionarioRepository.existsByEmail(email));
 
-        boolean emailEmCliente = clienteRepository.existsByEmail(email);
+        boolean emailEmCliente = clienteRepository.findByEmail(email)
+                .map(c -> !c.getId().equals(idIgnorado))
+                .orElseGet(() -> clienteRepository.existsByEmail(email));
 
         if (emailEmFuncionario || emailEmCliente) {
+            throw new FuncionarioAlreadyExistsException("Este e-mail já está em uso no sistema.");
+        }
+    }
+
+    public void validarEmailUnicoCliente(String email, Long clienteId) {
+        boolean emailEmFuncionario = funcionarioRepository.existsByEmail(email);
+        boolean emailEmOutroCliente = clienteRepository.findByEmail(email)
+                .map(cliente -> !cliente.getId().equals(clienteId))
+                .orElse(false);
+
+        if (emailEmFuncionario || emailEmOutroCliente) {
+            throw new FuncionarioAlreadyExistsException("Este e-mail já está em uso no sistema.");
+        }
+    }
+
+    public void validarEmailUnicoFuncionario(String email, Long funcionarioId) {
+        boolean emailEmOutroFuncionario = funcionarioRepository.findByEmail(email)
+                .map(funcionario -> !funcionario.getId().equals(funcionarioId))
+                .orElse(false);
+        boolean emailEmCliente = clienteRepository.existsByEmail(email);
+
+        if (emailEmOutroFuncionario || emailEmCliente) {
             throw new FuncionarioAlreadyExistsException("Este e-mail já está em uso no sistema.");
         }
     }

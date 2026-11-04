@@ -81,9 +81,9 @@ public class SecurityConfiguracao {
                         .requestMatchers(ROTAS_PUBLICAS_GERAIS).permitAll()
                         .requestMatchers(ROTAS_SWAGGER_E_DOCUMENTACAO).permitAll()
 
-                        .requestMatchers("/servico/**", "/produto/**", "/funcionario/**")
+                        .requestMatchers("/servico/**", "/produto/**", "/movimentacao/**")
                             .hasAnyAuthority("FUNCIONARIO", "GESTOR")
-                        .requestMatchers("/movimentacao/**").hasAuthority("GESTOR")
+                        .requestMatchers("/funcionario/**").hasAuthority("GESTOR")
                         .requestMatchers("/consulta/**", "/dashboard/**", "/avaliacao/**")
                             .authenticated()
 

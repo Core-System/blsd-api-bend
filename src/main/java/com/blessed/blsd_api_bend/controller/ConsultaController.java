@@ -8,6 +8,13 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
+import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -33,6 +40,46 @@ public class ConsultaController {
         return ResponseEntity.ok(consultaService.listarPorCliente(clienteId));
     }
 
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<Page<ConsultaResponseDTO>> listar(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size,
+            @RequestParam(defaultValue = "asc") String sort,
+            @RequestParam(required = false) StatusConsulta status,
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String procedimento,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.fromString(sort), "dataHoraInicio")
+        );
+        return ResponseEntity.ok(consultaService.listarTodos(
+                status,
+                busca,
+                procedimento,
+                inicio == null ? null : inicio.atStartOfDay(),
+                fim == null ? null : fim.plusDays(1).atStartOfDay(),
+                pageable
+        ));
+    }
+
+    @GetMapping("/horarios-disponiveis")
+    public ResponseEntity<Page<HorarioDisponivelDTO>> listarHorariosDisponiveis(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        if (page < 0 || size < 1 || size > 50) {
+            throw new IllegalArgumentException("Os parâmetros de paginação são inválidos.");
+        }
+        return ResponseEntity.ok(consultaService.listarHorariosDisponiveis(
+                data,
+                PageRequest.of(page, size)
+        ));
+    }
+
     @PostMapping("/{consultaId}/avaliar")
     @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO', 'CLIENTE')")
     public ResponseEntity<ConsultaResponseDTO> avaliar(
@@ -45,5 +92,17 @@ public class ConsultaController {
     @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO', 'CLIENTE')")
     public ResponseEntity<ReservaDataDTO> buscarDetalhesCalCom(@PathVariable Long consultaId) {
         return ResponseEntity.ok(consultaService.buscarDetalhesExternos(consultaId));
+    }
+
+    @PostMapping("/{consultaId}/concluir")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<ConsultaResponseDTO> concluir(@PathVariable Long consultaId) {
+        return ResponseEntity.ok(consultaService.concluir(consultaId));
+    }
+
+    @PostMapping("/{consultaId}/cancelar")
+    @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<ConsultaResponseDTO> cancelar(@PathVariable Long consultaId) {
+        return ResponseEntity.ok(consultaService.cancelar(consultaId));
     }
 }

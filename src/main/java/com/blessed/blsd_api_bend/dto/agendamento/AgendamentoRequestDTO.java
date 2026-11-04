@@ -1,7 +1,9 @@
 package com.blessed.blsd_api_bend.dto.agendamento;
 
+import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class AgendamentoRequestDTO {
     @NotBlank
@@ -16,6 +18,9 @@ public class AgendamentoRequestDTO {
 
     @NotBlank
     private String procedimento;
+
+    @NotNull
+    private LocalConsulta localConsulta;
 
     public String getDataHoraInicio() {
         return dataHoraInicio;
@@ -47,5 +52,13 @@ public class AgendamentoRequestDTO {
 
     public void setProcedimento(String procedimento) {
         this.procedimento = procedimento;
+    }
+
+    public LocalConsulta getLocalConsulta() {
+        return localConsulta;
+    }
+
+    public void setLocalConsulta(LocalConsulta localConsulta) {
+        this.localConsulta = localConsulta;
     }
 }

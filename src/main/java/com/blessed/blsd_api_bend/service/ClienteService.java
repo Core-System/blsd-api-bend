@@ -44,9 +44,18 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listarTodos(String busca, Pageable pageable) {
+        return clienteRepository.buscar(normalizarBusca(busca), pageable)
+                .map(UsuarioMapper::toResponseDTO);
+    }
+
     public Page<ClienteResponseDTO> listarTodos(Pageable pageable) {
         return clienteRepository.findAll(pageable)
                 .map(UsuarioMapper::toResponseDTO);
+    }
+
+    private String normalizarBusca(String busca) {
+        return busca == null || busca.isBlank() ? null : busca.trim();
     }
 
     @Transactional(readOnly = true)
@@ -84,11 +93,13 @@ public class ClienteService {
     public ClienteResponseDTO atualizar(Long id, ClienteAtualizarRequestDTO dto) {
         Cliente cliente = buscarEntidadePorId(id);
 
-        unicidadeService.validarEmailUnico(dto.getEmail(), id);
+        if (!dto.getEmail().equalsIgnoreCase(cliente.getEmail())) {
+            unicidadeService.validarEmailUnicoCliente(dto.getEmail(), id);
+        }
 
         cliente.setNome(dto.getNome());
         cliente.setEmail(dto.getEmail());
-        cliente.setTelefone(dto.getTelefone());
+        cliente.setTelefone(dto.getTelefone().replaceAll("\\D", ""));
         cliente.setDataNasc(dto.getDataNasc());
         cliente.setUrlFoto(dto.getUrlFoto());
 

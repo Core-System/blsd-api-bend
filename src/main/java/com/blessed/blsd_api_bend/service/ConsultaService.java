@@ -10,16 +10,23 @@ import com.blessed.blsd_api_bend.exception.agendamento.HorarioIndisponivelExcept
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNaoConcluidaException;
 import com.blessed.blsd_api_bend.exception.consulta.ConsultaNotFoundException;
 import com.blessed.blsd_api_bend.exception.consulta.ReservaExternaNotFoundException;
+import com.blessed.blsd_api_bend.exception.consulta.ConsultaStatusInvalidoException;
 import com.blessed.blsd_api_bend.model.entity.*;
 import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
+import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.repository.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import org.springframework.data.domain.PageImpl;
 
 @Service
 @Slf4j
@@ -31,6 +38,9 @@ public class ConsultaService {
     private final AvaliacaoRepository avaliacaoRepository;
     private final CalComService calComService;
     private final NotificacaoPublisher notificacaoPublisher;
+
+    @org.springframework.beans.factory.annotation.Value("${calcom.time-zone:America/Sao_Paulo}")
+    private String timeZone;
 
     public ConsultaService(ConsultaRepository consultaRepository,
                            ClienteRepository clienteRepository,
@@ -51,10 +61,38 @@ public class ConsultaService {
                 .stream().map(this::toDTO).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<ConsultaResponseDTO> listarTodos(StatusConsulta status,
+                                                  String busca,
+                                                  String procedimento,
+                                                  LocalDateTime inicio,
+                                                  LocalDateTime fim,
+                                                  Pageable pageable) {
+        String buscaNormalizada = busca == null || busca.isBlank() ? null : busca.trim();
+        String procedimentoNormalizado = procedimento == null || procedimento.isBlank() ? null : procedimento.trim();
+        return consultaRepository.buscar(status, buscaNormalizada, procedimentoNormalizado, inicio, fim, pageable)
+                .map(this::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<HorarioDisponivelDTO> listarHorariosDisponiveis(LocalDate data, Pageable pageable) {
+        List<HorarioDisponivelDTO> horarios = calComService.buscarHorariosDisponiveis(data);
+        int inicio = (int) Math.min(pageable.getOffset(), horarios.size());
+        int fim = Math.min(inicio + pageable.getPageSize(), horarios.size());
+        List<HorarioDisponivelDTO> pagina = horarios.subList(inicio, fim);
+        return new PageImpl<>(pagina, pageable, horarios.size());
+    }
+
     @Transactional
     public ConsultaResponseDTO criarAgendamento(AgendamentoRequestDTO request) {
+        if (request.getLocalConsulta() == LocalConsulta.DOMICILIO) {
+            throw new IllegalArgumentException("O atendimento em domicílio está temporariamente indisponível.");
+        }
+
         ZonedDateTime zonedInicio = ZonedDateTime.parse(request.getDataHoraInicio());
-        LocalDateTime dataHoraInicio = zonedInicio.toLocalDateTime();
+        LocalDateTime dataHoraInicio = zonedInicio
+                .withZoneSameInstant(ZoneId.of(timeZone))
+                .toLocalDateTime();
         LocalDateTime dataHoraFim = dataHoraInicio.plusMinutes(60);
 
         List<Consulta> conflitos = consultaRepository.findConsultasConflitantes(dataHoraInicio, dataHoraFim);
@@ -76,6 +114,7 @@ public class ConsultaService {
         consulta.setCliente(cliente);
         consulta.setStatusConsulta(StatusConsulta.PENDENTE);
         consulta.setServicos(List.of(servicoEscolhido));
+        consulta.setLocalConsulta(request.getLocalConsulta());
         consulta.setCalBookingUid(bookingUid);
 
         consultaRepository.save(consulta);
@@ -84,7 +123,7 @@ public class ConsultaService {
         clienteRepository.save(cliente);
 
         try {
-            dispararNotificacoes(cliente, request.getProcedimento(), zonedInicio);
+            dispararNotificacoes(cliente, request.getProcedimento(), dataHoraInicio, request.getLocalConsulta());
         } catch (IllegalStateException exception) {
             log.error("Agendamento {} salvo, mas as notificações não foram publicadas", consulta.getId(), exception);
         }
@@ -92,10 +131,10 @@ public class ConsultaService {
         return toDTO(consulta);
     }
 
-    private void dispararNotificacoes(Cliente cliente, String procedimento, ZonedDateTime zonedInicio) {
+    private void dispararNotificacoes(Cliente cliente, String procedimento, LocalDateTime dataHoraInicio, LocalConsulta localConsulta) {
         try {
-            String data = "%02d/%02d/%d".formatted(zonedInicio.getDayOfMonth(), zonedInicio.getMonthValue(), zonedInicio.getYear());
-            String hora = "%02d:%02d".formatted(zonedInicio.getHour(), zonedInicio.getMinute());
+            String data = "%02d/%02d/%d".formatted(dataHoraInicio.getDayOfMonth(), dataHoraInicio.getMonthValue(), dataHoraInicio.getYear());
+            String hora = "%02d:%02d".formatted(dataHoraInicio.getHour(), dataHoraInicio.getMinute());
             String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
 
             NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
@@ -114,6 +153,7 @@ public class ConsultaService {
                             <p style="font-size: 14px; color: #1a5666;"><strong>Serviço:</strong> %s</p>
                             <p style="font-size: 14px; color: #1a5666;"><strong>Data:</strong> %s</p>
                             <p style="font-size: 14px; color: #1a5666;"><strong>Horário:</strong> %s</p>
+                            <p style="font-size: 14px; color: #1a5666;"><strong>Local:</strong> Clínica — Rua Entre-Folhas, 4a - Jardim Arize</p>
                           </div>
                           <div style="text-align: center;">
                             <a href="%s" style="background: #0B3C49; color: #FFFCF9; padding: 12px 32px; border-radius: 12px; text-decoration: none;">Gerenciar Agendamento</a>
@@ -165,6 +205,36 @@ public class ConsultaService {
         return toDTO(consulta);
     }
 
+    @Transactional
+    public ConsultaResponseDTO concluir(Long consultaId) {
+        Consulta consulta = buscarConsulta(consultaId);
+        validarPendente(consulta);
+        consulta.setStatusConsulta(StatusConsulta.CONCLUIDA);
+        return toDTO(consultaRepository.save(consulta));
+    }
+
+    @Transactional
+    public ConsultaResponseDTO cancelar(Long consultaId) {
+        Consulta consulta = buscarConsulta(consultaId);
+        validarPendente(consulta);
+        if (consulta.getCalBookingUid() != null && !consulta.getCalBookingUid().isBlank()) {
+            calComService.cancelarReserva(consulta.getCalBookingUid());
+        }
+        consulta.setStatusConsulta(StatusConsulta.CANCELADA);
+        return toDTO(consultaRepository.save(consulta));
+    }
+
+    private Consulta buscarConsulta(Long consultaId) {
+        return consultaRepository.findById(consultaId)
+                .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
+    }
+
+    private void validarPendente(Consulta consulta) {
+        if (consulta.getStatusConsulta() != StatusConsulta.PENDENTE) {
+            throw new ConsultaStatusInvalidoException("A consulta não está pendente e não pode ser alterada.");
+        }
+    }
+
     private ConsultaResponseDTO toDTO(Consulta c) {
         AvaliacaoDTO avaliacaoDTO = null;
         if (c.getAvaliacao() != null) {
@@ -182,7 +252,16 @@ public class ConsultaService {
                 c.getServicos() != null
                         ? c.getServicos().stream().map(Servico::getNome).toList()
                         : List.of(),
-                avaliacaoDTO, c.getCalBookingUid()
+                avaliacaoDTO,
+                c.getCalBookingUid(),
+                c.getLocalConsulta() != null ? c.getLocalConsulta().name() : null,
+                c.getCliente() == null
+                        ? null
+                        : new ConsultaResponseDTO.ClienteResumoDTO(
+                                c.getCliente().getId(),
+                                c.getCliente().getNome(),
+                                c.getCliente().getEmail()
+                        )
         );
     }
 
@@ -191,7 +270,7 @@ public class ConsultaService {
                 .orElseThrow(() -> new ConsultaNotFoundException("Consulta não encontrada."));
 
         if (consulta.getCalBookingUid() == null || consulta.getCalBookingUid().isBlank()) {
-            throw new ReservaExternaNotFoundException("Esta consulta não possui vínculo com o Cal.com.");
+            throw new ReservaExternaNotFoundException("Esta consulta não pode ser cancelada.");
         }
 
         return calComService.buscarDetalhesReserva(consulta.getCalBookingUid());

@@ -6,6 +6,7 @@ import com.blessed.blsd_api_bend.dto.funcionario.FuncionarioResponseDTO;
 import com.blessed.blsd_api_bend.dto.usuario.UsuarioMapper;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioAlreadyExistsException;
 import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioNotFoundException;
+import com.blessed.blsd_api_bend.exception.funcionario.FuncionarioProtegidoException;
 import com.blessed.blsd_api_bend.model.entity.Acesso;
 import com.blessed.blsd_api_bend.model.entity.Funcionario;
 import com.blessed.blsd_api_bend.model.enums.TiposAcessos;
@@ -14,9 +15,11 @@ import com.blessed.blsd_api_bend.repository.FuncionarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.blessed.blsd_api_bend.dto.usuario.UsuarioDetalheDTO;
 
 import java.util.List;
 
@@ -38,13 +41,13 @@ public class FuncionarioService {
 
     @Transactional(readOnly = true)
     public Page<FuncionarioResponseDTO> listarTodos(Pageable pageable) {
-        return funcionarioRepository.findAll(pageable)
+        return funcionarioRepository.findByAcessoNomeNot(TiposAcessos.GESTOR, pageable)
                 .map(UsuarioMapper::toResponseDTO);
     }
 
     @Transactional(readOnly = true)
     public List<Funcionario> listarTodos() {
-        return funcionarioRepository.findAll();
+        return funcionarioRepository.findByAcessoNomeNot(TiposAcessos.GESTOR);
     }
 
     public Funcionario listarPorId(Long id) {
@@ -78,11 +81,14 @@ public class FuncionarioService {
     }
 
     @Transactional
-    public Funcionario atualizar(Long id, FuncionarioAtualizarRequestDTO dto) {
+    public Funcionario atualizar(Long id, FuncionarioAtualizarRequestDTO dto, UsuarioDetalheDTO usuarioAutenticado) {
         Funcionario funcionario = funcionarioRepository.findById(id)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionário não encontrado"));
 
-        unicidadeService.validarEmailUnico(dto.getEmail(), id);
+        protegerGestor(funcionario, usuarioAutenticado, false);
+        if (!dto.getEmail().equalsIgnoreCase(funcionario.getEmail())) {
+            unicidadeService.validarEmailUnicoFuncionario(dto.getEmail(), id);
+        }
 
         if (dto.getCpf() != null && !dto.getCpf().equals(funcionario.getCpf()) && funcionarioRepository.existsByCpf(dto.getCpf())) {
             throw new FuncionarioAlreadyExistsException("CPF já está em uso por outro funcionário.");
@@ -96,16 +102,60 @@ public class FuncionarioService {
         return funcionarioRepository.save(funcionario);
     }
 
-    public void deletar(Long id) {
+    public Funcionario atualizar(Long id, FuncionarioAtualizarRequestDTO dto) {
+        return atualizar(id, dto, usuarioAutenticadoAtual());
+    }
+
+    public void deletar(Long id, UsuarioDetalheDTO usuarioAutenticado) {
         Funcionario funcionario = listarPorId(id);
+        protegerGestor(funcionario, usuarioAutenticado, true);
         funcionarioRepository.delete(funcionario);
     }
 
-    public void atualizarFotoPerfil(Long funcionarioId, MultipartFile file) {
+    public void deletar(Long id) {
+        deletar(id, usuarioAutenticadoAtual());
+    }
+
+    private void protegerGestor(
+            Funcionario funcionario,
+            UsuarioDetalheDTO usuarioAutenticado,
+            boolean bloquearProprioGestor
+    ) {
+        boolean gestor = funcionario.getAcesso() != null
+                && funcionario.getAcesso().getNome() == TiposAcessos.GESTOR;
+        boolean proprioUsuario = usuarioAutenticado != null
+                && funcionario.getId().equals(usuarioAutenticado.getId());
+
+        if (gestor && (bloquearProprioGestor || !proprioUsuario)) {
+            throw new FuncionarioProtegidoException(
+                    bloquearProprioGestor
+                            ? "Usuários gestores não podem ser removidos."
+                            : "Usuários gestores só podem alterar o próprio perfil."
+            );
+        }
+    }
+
+    public void atualizarFotoPerfil(
+            Long funcionarioId,
+            MultipartFile file,
+            UsuarioDetalheDTO usuarioAutenticado
+    ) {
         Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionário não encontrado."));
+        protegerGestor(funcionario, usuarioAutenticado, false);
         String caminhoRelativo = fileStorageService.armazenarArquivo(file);
         funcionario.setUrlFoto("/uploads/" + caminhoRelativo);
         funcionarioRepository.save(funcionario);
+    }
+
+    public void atualizarFotoPerfil(Long funcionarioId, MultipartFile file) {
+        atualizarFotoPerfil(funcionarioId, file, usuarioAutenticadoAtual());
+    }
+
+    private UsuarioDetalheDTO usuarioAutenticadoAtual() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication() != null
+                ? SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+                : null;
+        return principal instanceof UsuarioDetalheDTO ? (UsuarioDetalheDTO) principal : null;
     }
 }

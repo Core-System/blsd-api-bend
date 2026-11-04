@@ -27,6 +27,12 @@ public class ClienteController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('GESTOR', 'FUNCIONARIO')")
+    public ResponseEntity<Page<ClienteResponseDTO>> listarClientes(
+            @RequestParam(required = false) String busca,
+            Pageable pageable) {
+        return ResponseEntity.ok(clienteService.listarTodos(busca, pageable));
+    }
+
     public ResponseEntity<Page<ClienteResponseDTO>> listarClientes(Pageable pageable) {
         return ResponseEntity.ok(clienteService.listarTodos(pageable));
     }
