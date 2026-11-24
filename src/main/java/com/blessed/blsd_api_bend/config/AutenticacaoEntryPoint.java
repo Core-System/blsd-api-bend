@@ -18,7 +18,7 @@ public class AutenticacaoEntryPoint implements AuthenticationEntryPoint {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }
         else {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 }

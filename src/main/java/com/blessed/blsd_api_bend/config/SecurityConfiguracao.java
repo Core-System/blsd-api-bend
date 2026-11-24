@@ -83,6 +83,8 @@ public class SecurityConfiguracao {
 
                         .requestMatchers("/servico/**", "/produto/**", "/movimentacao/**")
                             .hasAnyAuthority("FUNCIONARIO", "GESTOR")
+                        .requestMatchers("/funcionario/me", "/funcionario/me/**")
+                            .hasAnyAuthority("FUNCIONARIO", "GESTOR")
                         .requestMatchers("/funcionario/**").hasAuthority("GESTOR")
                         .requestMatchers("/consulta/**", "/dashboard/**", "/avaliacao/**")
                             .authenticated()

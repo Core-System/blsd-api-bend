@@ -16,6 +16,7 @@ import com.blessed.blsd_api_bend.model.enums.StatusConsulta;
 import com.blessed.blsd_api_bend.model.enums.LocalConsulta;
 import com.blessed.blsd_api_bend.repository.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,9 @@ import org.springframework.data.domain.PageImpl;
 @Service
 @Slf4j
 public class ConsultaService {
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     private final ConsultaRepository consultaRepository;
     private final ClienteRepository clienteRepository;
@@ -135,7 +139,10 @@ public class ConsultaService {
         try {
             String data = "%02d/%02d/%d".formatted(dataHoraInicio.getDayOfMonth(), dataHoraInicio.getMonthValue(), dataHoraInicio.getYear());
             String hora = "%02d:%02d".formatted(dataHoraInicio.getHour(), dataHoraInicio.getMinute());
-            String linkAgendamento = "http://localhost:5173/agendar?code=%s".formatted(cliente.getTokenAgendamento());
+            String linkAgendamento = "%s/agendar?code=%s".formatted(
+                    frontendUrl.replaceAll("/$", ""),
+                    cliente.getTokenAgendamento()
+            );
 
             NotificacaoEmailRequest emailRequest = new NotificacaoEmailRequest(
                     cliente.getEmail(),
@@ -165,6 +172,7 @@ public class ConsultaService {
             );
 
             notificacaoPublisher.enviarEmail(emailRequest);
+
             String telefone = cliente.getTelefone();
             if (telefone != null && !telefone.isBlank()) {
                 String telefoneNumeros = telefone.replaceAll("\\D", "");
@@ -175,6 +183,8 @@ public class ConsultaService {
                             "Sistema Blessed7", ddd, numero,
                             "Olá, " + cliente.getNome() + ", seu agendamento foi realizado com sucesso!"
                     );
+
+
                     notificacaoPublisher.enviarSms(requestSms);
                     notificacaoPublisher.enviarWhatsapp(requestSms);
                 }
