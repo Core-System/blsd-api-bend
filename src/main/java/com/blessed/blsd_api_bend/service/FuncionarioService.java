@@ -45,11 +45,6 @@ public class FuncionarioService {
                 .map(UsuarioMapper::toResponseDTO);
     }
 
-    @Transactional(readOnly = true)
-    public List<Funcionario> listarTodos() {
-        return funcionarioRepository.findByAcessoNomeNot(TiposAcessos.GESTOR);
-    }
-
     public Funcionario listarPorId(Long id) {
         return funcionarioRepository.findById(id)
                 .orElseThrow(() -> new FuncionarioNotFoundException("Funcionario não encontrado"));
@@ -110,6 +105,11 @@ public class FuncionarioService {
         Funcionario funcionario = listarPorId(id);
         protegerGestor(funcionario, usuarioAutenticado, true);
         funcionarioRepository.delete(funcionario);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Funcionario> listarTodos() {
+        return funcionarioRepository.findByAcessoNomeNot(TiposAcessos.GESTOR);
     }
 
     public void deletar(Long id) {
