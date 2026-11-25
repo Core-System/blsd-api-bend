@@ -5,6 +5,8 @@ import com.blessed.blsd_api_bend.exception.servico.ServicoAlreadyExistsException
 import com.blessed.blsd_api_bend.exception.servico.ServicoNotFoundException;
 import com.blessed.blsd_api_bend.model.entity.Servico;
 import com.blessed.blsd_api_bend.repository.ServicoRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,10 @@ public class ServicoService implements ICrudService<Servico> {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+            cacheNames = "servicos",
+            key = "#p0 + '|' + #p1 + '|' + #p2.pageNumber + '|' + #p2.pageSize + '|' + #p2.sort"
+    )
     public Page<ServicoResponseDTO> listarTodos(String busca, String categoria, Pageable pageable) {
         return servicoRepository.buscar(normalizar(busca), normalizar(categoria), pageable)
                 .map(this::toResponseDTO);
@@ -61,6 +67,7 @@ public class ServicoService implements ICrudService<Servico> {
     }
 
     @Override
+    @CacheEvict(cacheNames = "servicos", allEntries = true)
     public Servico cadastrar(Servico req) {
         if(servicoRepository.existsByNome(req.getNome())){
             throw new ServicoAlreadyExistsException("Servico já existente");
@@ -70,6 +77,7 @@ public class ServicoService implements ICrudService<Servico> {
     }
 
     @Override
+    @CacheEvict(cacheNames = "servicos", allEntries = true)
     public Servico atualizar(Long id, Servico req) {
         return servicoRepository.findById(id).stream().
                 map(p->{
@@ -95,6 +103,7 @@ public class ServicoService implements ICrudService<Servico> {
         }
     */
     @Override
+    @CacheEvict(cacheNames = "servicos", allEntries = true)
     public void deletar(Long id) {
         Servico servico = listarPorId(id);
         servicoRepository.delete(servico);
